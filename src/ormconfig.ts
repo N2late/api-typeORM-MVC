@@ -1,5 +1,6 @@
 import { ConnectionOptions } from 'typeorm';
 import 'dotenv/config';
+import 'reflect-metadata';
 
 export const config: ConnectionOptions = {
   type: 'mysql',
