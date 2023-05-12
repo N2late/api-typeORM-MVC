@@ -1,18 +1,26 @@
-import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
+import { Entity, Column } from 'typeorm';
+import { BaseSchema } from './utils/baseSchema';
 
-@Entity()
-export class User {
+// using the active record pattern with typeorm
+@Entity('users')
+export class User extends BaseSchema {
+  @Column()
+  firstName: string;
 
-    @PrimaryGeneratedColumn()
-    id: number;
+  @Column()
+  lastName: string;
 
-    @Column()
-    firstName: string;
-
-    @Column()
-    lastName: string;
-
-    @Column()
-    age: number;
-
+  @Column()
+  age: number;
 }
+
+/* export class UserModel {
+  public users: Repository<User>;
+  constructor() {
+    this.users = getRepository(User);
+  }
+
+  async save(user: User) {
+    return await this.users.save(user);
+  }
+} */
