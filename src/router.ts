@@ -1,7 +1,5 @@
 import * as http from 'http';
-import * as RouteParser from 'route-parser';
-import * as urlParser from "url";
-
+import * as urlParser from 'url';
 
 interface Route {
   method: string;
@@ -14,7 +12,6 @@ interface FoundRoute {
     req: http.IncomingMessage & { params: object },
     res: http.ServerResponse,
   ) => void;
-  params: object;
 }
 
 export class Router {
@@ -29,11 +26,19 @@ export class Router {
   }
 
   public findRoute(method: string, url: string): FoundRoute | null {
-    /* console.log('url: ', url); */
+    const { pathname } = urlParser.parse(url, true);
+    const [, path, userId] = pathname.split('/');
 
-    const route = this.routes.find(
-  (route) => route.method === method  && route.url === url,
-    );
+    let route;
+    if (userId && !isNaN(+userId)) {
+      route = this.routes.find(
+        (route) => route.method === method && route.url === `/${path}/:id`,
+      );
+    } else {
+      route = this.routes.find(
+        (route) => route.method === method && route.url === url,
+      );
+    }
 
     if (!route) {
       return null;
@@ -41,8 +46,7 @@ export class Router {
 
     return {
       handler: route.handler,
-      params: route.url.match(url),
-    };
+      };
   }
 
   public get(
@@ -51,4 +55,27 @@ export class Router {
   ) {
     this.addRoute('GET', route, handler);
   }
+
+  public post(
+    route: string,
+    handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
+  ) {
+    this.addRoute('POST', route, handler);
+  }
+
+  public put(
+    route: string,
+    handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
+  ) {
+    console.log(route);
+    this.addRoute('PUT', route, handler);
+  }
+
+  public delete(
+    route: string,
+    handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
+  ) {
+    this.addRoute('DELETE', route, handler);
+  }
+  
 }
