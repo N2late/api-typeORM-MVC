@@ -1,5 +1,7 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, OneToOne } from 'typeorm';
 import { BaseSchema } from './utils/baseSchema';
+import { Session } from './Session';
+import bcrypt from 'bcrypt';
 
 // using the active record pattern with typeorm
 @Entity('users')
@@ -11,16 +13,15 @@ export class User extends BaseSchema {
   lastName: string;
 
   @Column()
-  age: number;
+  email: string;
+
+  @Column()
+  passwordHash: string;
+
+  @OneToOne((type) => Session, (session) => session.user)
+  session: Session;
+
+  async hashPassword(password: string) {
+    this.passwordHash = await bcrypt.hash(password, 12);
+  }
 }
-
-/* export class UserModel {
-  public users: Repository<User>;
-  constructor() {
-    this.users = getRepository(User);
-  }
-
-  async save(user: User) {
-    return await this.users.save(user);
-  }
-} */
