@@ -38,8 +38,10 @@ abstract class BaseController<Entity> {
   }
 
   public async create(req: any, res: any) {
+    console.log('creating entity');
     try {
       req.body = await this.parseBody(req);
+      console.log(req.body);
       const entity = await this.repository.save(req.body);
       res.statusCode = 201;
       res.end(JSON.stringify(entity));
@@ -79,11 +81,12 @@ abstract class BaseController<Entity> {
 
     res.end(err.message);
   } */
-  private async parseBody(req: any) {
+  protected async parseBody(req: any) {
     req.body = '';
     await req.on('data', (chunk) => {
       req.body += chunk.toString();
     });
+
     return JSON.parse(req.body);
   }
 }

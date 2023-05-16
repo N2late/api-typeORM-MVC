@@ -4,6 +4,8 @@ import App from './app';
 import 'reflect-metadata';
 import UserController from './controller/user.controller';
 
+import SignupController from './controller/signup.controller';
+
 let connection: Connection;
 const main = async () => {
   try {
@@ -12,11 +14,11 @@ const main = async () => {
     });
 
     console.log('Connected to DB');
-    const app = new App([new UserController()]);
+    const app = new App([new UserController(), new SignupController()]);
     app.listen();
     console.log('Server started');
   } catch (err) {
-    console.log("ERROR: ", err);
+    console.log('ERROR: ', err);
     throw new Error('Failed to connect to DB');
   }
 };
