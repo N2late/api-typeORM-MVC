@@ -18,7 +18,7 @@ export class SignupController extends BaseController<Session> {
 
     // check if user already exists
     try {
-      checkIfUserExists(email);
+     await checkIfUserExists(email);
     } catch (err) {
       res.statusCode = 400;
       res.end(JSON.stringify({ message: err.message }));

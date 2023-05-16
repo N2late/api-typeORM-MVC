@@ -46,7 +46,7 @@ export class Router {
 
     return {
       handler: route.handler,
-      };
+    };
   }
 
   public get(
@@ -67,7 +67,6 @@ export class Router {
     route: string,
     handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
   ) {
-    console.log(route);
     this.addRoute('PUT', route, handler);
   }
 
@@ -77,5 +76,4 @@ export class Router {
   ) {
     this.addRoute('DELETE', route, handler);
   }
-  
 }

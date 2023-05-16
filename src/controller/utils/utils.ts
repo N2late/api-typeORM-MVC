@@ -1,23 +1,23 @@
-import {validate} from "class-validator";
-import { getRepository } from "typeorm";
-import { User } from "../../entity/User";
+import { validate } from 'class-validator';
+import { getRepository } from 'typeorm';
+import { User } from '../../entity/User';
 
 export async function validateEntity(entity: any) {
-    const errors = await validate(entity);
-    if (errors.length > 0) {
-        throw new Error("validation failed");
-    }
+  const errors = await validate(entity);
+  if (errors.length > 0) {
+    throw new Error('validation failed');
+  }
 }
 
+export async function checkIfUserExists(email: string) {
+  const userRepository = await getRepository(User);
+  const userFound = await userRepository.find({
+    where: {
+      email: email,
+    },
+  });
 
-export function checkIfUserExists(email: string) {
-    const userRepository = getRepository(User)
-    const userFound = userRepository.find({
-        where: {
-            email: email
-        }
-    })
-    if(userFound) {
-        throw new Error("User already exists")
-    }
+  if (userFound.length) {
+    throw new Error('User already exists');
+  }
 }
