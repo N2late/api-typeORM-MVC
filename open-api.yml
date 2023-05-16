@@ -1,0 +1,288 @@
+openapi: 3.0.0
+info:
+  title: Book Recommendation API
+  version: 1.0.0
+  description: An API for managing book recommendations and reading lists.
+servers:
+  - url: http://localhost:8000/api/v1
+  - url: https://book-recommendation
+
+paths:
+  /signin:
+    post:
+      summary: Sign in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signin'
+      responses:
+        201:
+          description: User was created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Signin'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+      tags:
+        - Authentication
+
+  /login:
+    post:
+      summary: Sign in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signin'
+      responses:
+        200:
+          description: User is logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Signin'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+      tags:
+        - Authentication
+
+  /users/{id}:
+    get:
+      summary: Get user by session token
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Session not valid
+      tags:
+        - users
+    put:
+      summary: Update user by session token
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Session not valid
+      tags:
+        - users
+    delete:
+      summary: Delete user by session token
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '204':
+          description: User deleted
+        '400':
+          description: Session not valid
+      tags:
+        - users
+  /books/{id}:
+    get:
+      summary: Get book by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Book not found
+      tags:
+        - books
+    post:
+      summary: Create book
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Book not found
+      tags:
+        - books
+    put:
+      summary: Update book by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Book not found
+      tags:
+        - books
+    delete:
+      summary: Delete book by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '204':
+          description: Book deleted
+        '400':
+          description: Book not found
+      tags:
+        - books
+  /books/recomendation:
+    get:
+      summary: Get book recommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Book recommended
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Book not found
+      tags:
+        - books
+
+components:
+  schemas:
+    Signin:
+      type: object
+      required:
+        - email
+        - password
+        - username
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        username:
+          type: string
+    User:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    Book:
+      type: object
+      required:
+        - title
+        - author_id
+        - genre_id
+        - bookshelve_id
+        - user_id
+      properties:
+        title:
+          type: string
+        author_id:
+          type: integer
+        genre_id:
+          type: integer
+        bookshelve_id:
+          type: integer
+        user_id:
+          type: integer
+
+tags:
+  - name: Authentication
+  - name: users
+  - name: books
