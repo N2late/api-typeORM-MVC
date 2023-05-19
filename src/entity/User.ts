@@ -1,4 +1,4 @@
-import { Entity, Column, OneToOne, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseSchema } from './utils/baseSchema';
 import { Session } from './Session';
 import * as bcrypt from 'bcrypt';
