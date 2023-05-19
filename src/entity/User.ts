@@ -7,17 +7,40 @@ import { IsEmail, Length, IsString } from 'class-validator';
 // using the active record pattern with typeorm
 @Entity('users')
 export class User extends BaseSchema {
-  @Column()
+  @Column(
+    'varchar',
+    {
+      length: 50,
+      nullable: false,
+    }
+  )
   firstName: string;
 
-  @Column()
+  @Column(
+    'varchar',
+    {
+      length: 50,
+      nullable: false,
+    }
+  )
   lastName: string;
 
-  @Column()
+  @Column(
+    'varchar',
+    {
+      length: 100,
+      nullable: false
+    }
+  )
   @IsEmail()
   email: string;
 
-  @Column()
+  @Column(
+    'varchar',
+    {
+      nullable: false,
+    }
+  )
   @Length(4, 30)
   @IsString()
   passwordHash: string;

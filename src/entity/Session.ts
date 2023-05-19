@@ -6,7 +6,10 @@ import setUnixTimestampTomorrow from './utils/setUnixTimestampTomorrow';
 
 @Entity('sessions')
 export class Session extends BaseSchema {
-  @Column({ default: crypto.randomBytes(80).toString('base64') })
+  @Column({
+    type: 'varchar',
+    default: crypto.randomBytes(80).toString('base64'),
+  })
   token: string;
 
   @Column({
