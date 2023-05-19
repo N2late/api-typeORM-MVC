@@ -12,28 +12,39 @@ abstract class BaseController<Entity> {
     this.parseBody = this.parseBody.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
+    this.show = this.show.bind(this);
     /*  this.errorHandling = this.errorHandling.bind(this); */
   }
 
   public initializeRoutes(path: string) {
     this.path = path;
-    if(this.path !== '/signup' && this.path !== '/login') {
-    this.router.get(this.path, this.index);
-
-    this.router.put(`${this.path}/:id`, this.update);
-    this.router.delete(`${this.path}/:id`, this.delete);
+    if (this.path !== '/signup' && this.path !== '/login') {
+      this.router.get(this.path, this.index);
+      this.router.get(`${this.path}/:id`, this.show);
+      this.router.put(`${this.path}/:id`, this.update);
+      this.router.delete(`${this.path}/:id`, this.delete);
     }
-
+    if (!this.path.includes('/users'))
     this.router.post(this.path, this.create);
   }
 
   public async index(req: any, res: any) {
     try {
       const entities = await this.repository.find();
-      console.log(entities);
+
       res.end(JSON.stringify(entities));
     } catch (err) {
       /*  this.errorHandling(err, res); */
+    }
+  }
+
+  public async show(req: any, res: any) {
+    try {
+      const [, , userId] = req.url.split('/');
+      const entity = await this.repository.findOne(userId);
+      res.end(JSON.stringify(entity));
+    } catch (err) {
+      console.log(err);
     }
   }
 

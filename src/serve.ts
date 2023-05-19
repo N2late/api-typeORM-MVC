@@ -16,7 +16,6 @@ const main = async () => {
     console.log('Connected to DB');
     const app = new App([new UserController(), new SignupController()]);
     app.listen();
-    console.log('Server started');
   } catch (err) {
     console.log('ERROR: ', err);
     throw new Error('Failed to connect to DB');

@@ -22,13 +22,12 @@ export class User extends BaseSchema {
   @IsString()
   passwordHash: string;
 
-  @OneToMany((type) => Session,(session) => session.user, {
-    onDelete: 'CASCADE'
+  @OneToMany((type) => Session, (session) => session.user, {
+    onDelete: 'CASCADE',
   })
   session: Session;
 
   async hashPassword(password: string) {
-    console.log('hashing password: ', password);
     this.passwordHash = await bcrypt.hash(password, 12);
   }
 

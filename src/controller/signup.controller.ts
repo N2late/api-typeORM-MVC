@@ -31,8 +31,13 @@ export class SignupController extends BaseController<Session> {
     user.email = email;
     user.passwordHash = passwordHash;
 
-    validateEntity(user);
-
+    try {
+      await validateEntity(user);
+    } catch (err) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ message: err.message }));
+      return;
+    }
     await user.hashPassword(passwordHash);
 
     try {
@@ -48,7 +53,8 @@ export class SignupController extends BaseController<Session> {
       (res.setHeader = 'Set-Cookie'), serializedCookie;
       res.end(JSON.stringify({ user: newUser, session }));
     } catch (err) {
-      console.log(err);
+      res.statusCode = 400;
+      res.end(JSON.stringify({ message: err.message }));
     }
   }
 }

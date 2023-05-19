@@ -1,15 +1,8 @@
-import {
-  Entity,
-  Column,
-  OneToOne,
-  JoinColumn,
-  ManyToOne,
-  Timestamp,
-  BeforeInsert,
-} from 'typeorm';
+import { Entity, Column, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseSchema } from './utils/baseSchema';
 import { User } from './User';
 import * as crypto from 'node:crypto';
+import setUnixTimestampTomorrow from './utils/setUnixTimestampTomorrow';
 
 @Entity('sessions')
 export class Session extends BaseSchema {
@@ -17,22 +10,17 @@ export class Session extends BaseSchema {
   token: string;
 
   @Column({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
+    type: 'bigint',
+    default: setUnixTimestampTomorrow(),
     nullable: false,
   })
-  expiryTimestamp: Date;
+  expiryTimestamp: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @BeforeInsert()
-  setExpiryTimestamp() {
-    this.expiryTimestamp = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours in milliseconds
-  }
-
   checkIfExpired() {
-    return this.expiryTimestamp < new Date();
+    return this.expiryTimestamp < Math.floor(Date.now() / 1000);
   }
 }
