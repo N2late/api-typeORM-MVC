@@ -9,7 +9,7 @@ interface Route {
 
 interface FoundRoute {
   handler: (
-    req: http.IncomingMessage & { params: object },
+    req: http.IncomingMessage,
     res: http.ServerResponse,
   ) => void;
 }

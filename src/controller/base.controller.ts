@@ -32,7 +32,7 @@ abstract class BaseController<Entity> {
   }
 
   public async index(req: any, res: any) {
-    console.log('index');
+
     try {
       const entities = await this.repository.find();
 
@@ -53,9 +53,7 @@ abstract class BaseController<Entity> {
     }
 
     const session = await this.getValidUserSessionByToken(token as string);
-    console.log(session)
-    console.log(userId)
-    console.log(session.user.id)
+
     if (session.user.id !== +userId) {
       res.statusCode = 401;
       res.end(JSON.stringify('Unauthorized'));
@@ -74,7 +72,7 @@ abstract class BaseController<Entity> {
   }
 
   public async create(req: any, res: any) {
-    console.log('creating entity');
+
     try {
       req.body = await this.parseBody(req);
 
@@ -88,7 +86,7 @@ abstract class BaseController<Entity> {
   }
 
   public async update(req: any, res: any) {
-    console.log('updating entity');
+
     try {
       const [, , userId] = req.url.split('/');
       req.body = await this.parseBody(req);
@@ -102,7 +100,7 @@ abstract class BaseController<Entity> {
   }
 
   public async delete(req: any, res: any) {
-    console.log('deleting entity');
+    
     try {
       const [, , userId] = req.url.split('/');
       const deletedEntity = await this.repository.delete(userId);
