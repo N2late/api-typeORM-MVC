@@ -1,4 +1,4 @@
-import { getRepository } from 'typeorm';
+import { LessThan, getRepository } from 'typeorm';
 import BaseController from './base.controller';
 import { Session } from '../entity/Session';
 import { User } from '../entity/User';
@@ -13,12 +13,14 @@ export class SignupController extends BaseController<Session> {
   }
 
   public async create(req: any, res: any) {
-    req.body = await this.parseBody(req);
-    const { firstName, lastName, email, passwordHash } = req.body;
+    let body = await this.parseBody(req);
+
+
+    const { firstName, lastName, email, passwordHash } = body;
 
     // check if user already exists
     try {
-     await checkIfUserExists(email);
+      await checkIfUserExists(email);
     } catch (err) {
       res.statusCode = 400;
       res.end(JSON.stringify({ message: err.message }));
@@ -47,11 +49,18 @@ export class SignupController extends BaseController<Session> {
         user: newUser,
       });
 
+      // delete expired sessions from db
+      await this.repository.delete({
+        expiryTimestamp: LessThan(new Date().getTime() / 1000),
+      });
+
+      delete newUser.passwordHash;
+
       const serializedCookie = createSerializedSignupTokenCookie(session.token);
 
       res.statusCode = 201;
-      (res.setHeader = 'Set-Cookie'), serializedCookie;
-      res.end(JSON.stringify({ user: newUser, session }));
+      res.setHeader('Set-Cookie', serializedCookie);
+      res.end(JSON.stringify({ user: newUser }));
     } catch (err) {
       res.statusCode = 400;
       res.end(JSON.stringify({ message: err.message }));

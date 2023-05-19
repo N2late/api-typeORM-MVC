@@ -1,12 +1,12 @@
 import * as cookie from 'cookie';
 
 export function createSerializedSignupTokenCookie(token: string) {
-  return cookie.serialize('token', token, {
+  const maxAge = 60 * 60 * 24; // 1 day
+  return cookie.serialize('sessionToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 3600,
-    expires: new Date(Date.now() + 3600 * 1000),
+    maxAge: maxAge,
+    expires: new Date(Date.now() + maxAge * 1000),
     path: '/',
   });
 }
