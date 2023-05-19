@@ -5,6 +5,7 @@ import 'reflect-metadata';
 import UserController from './controller/user.controller';
 
 import SignupController from './controller/signup.controller';
+import LoginController from './controller/login.controller';
 
 let connection: Connection;
 const main = async () => {
@@ -14,7 +15,7 @@ const main = async () => {
     });
 
     console.log('Connected to DB');
-    const app = new App([new UserController(), new SignupController()]);
+    const app = new App([new UserController(), new SignupController(), new LoginController()]);
     app.listen();
   } catch (err) {
     console.log('ERROR: ', err);

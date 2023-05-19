@@ -25,14 +25,12 @@ class App {
     controllers.forEach((controller) => {
       this.server.on('request', async (req, res) => {
         try {
-          console.log('request: ', req);
+          /* console.log('request: ', req); */
           const foundedRouter = controller.router.findRoute(
             req.method,
             req.url,
           );
-          console.log('here');
           console.log('foundedRouter: ', foundedRouter);
-          console.log('also here');
           if (foundedRouter) {
             console.log('Route found about to handle');
             await foundedRouter.handler(req, res);
@@ -41,6 +39,7 @@ class App {
             console.log('Route not found');
           }
         } catch (err) {
+          // should have a error handling with status code and message but I have an issue with two requests being made in one call. Couldn't figure out why.
           console.error(err);
         }
       });

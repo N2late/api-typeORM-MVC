@@ -19,8 +19,4 @@ export class Session extends BaseSchema {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
-
-  checkIfExpired() {
-    return this.expiryTimestamp < Math.floor(Date.now() / 1000);
-  }
 }
