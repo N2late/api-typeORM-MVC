@@ -1,6 +1,8 @@
 0 - BaseController
-0.1 - Add error handling method to base controller.
-0.2 - Add getValidUserBySessionToken to all req methods.
+0.1 - Add error handling method to base controller. : DONE
+0.2 - Add getValidUserBySessionToken to all req methods that need it. DONE
+0.4 - PUT /users shouldn't do anything
+0.5. - PUT users/:id
 
 3. create book logic
 

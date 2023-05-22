@@ -3,6 +3,7 @@ import { Router } from '../router';
 import { Session } from '../entity/Session';
 import { getTokenFromCookie } from './utils/utils';
 import { User } from '../entity/User';
+import { IncomingMessage } from 'http';
 
 abstract class BaseController<Entity> {
   protected path = '/';
@@ -16,8 +17,7 @@ abstract class BaseController<Entity> {
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
     this.show = this.show.bind(this);
-    this.getValidUserSessionByToken = this.getValidUserSessionByToken.bind(this);
-    /*  this.errorHandling = this.errorHandling.bind(this); */
+    this.errorHandling = this.errorHandling.bind(this);
   }
 
   public initializeRoutes(path: string) {
@@ -32,33 +32,20 @@ abstract class BaseController<Entity> {
   }
 
   public async index(req: any, res: any) {
-
     try {
       const entities = await this.repository.find();
 
       res.end(JSON.stringify(entities));
     } catch (err) {
-      /*  this.errorHandling(err, res); */
+      this.errorHandling(err, res);
+      return;
     }
   }
 
   public async show(req: any, res: any) {
-    const [, , userId] = req.url.split('/');
-    let token: string | Error;
-    try {
-      token = getTokenFromCookie(req.headers.cookie);
-    } catch (err) {
-      res.statusCode = 401;
-      res.end(JSON.stringify(err.message));
-    }
+    let session: Session;
 
-    const session = await this.getValidUserSessionByToken(token as string);
-
-    if (session.user.id !== +userId) {
-      res.statusCode = 401;
-      res.end(JSON.stringify('Unauthorized'));
-      return;
-    }
+    session = await this.validateUserSession(req, res);
 
     try {
       const entity = await this.repository.findOne(session.user.id);
@@ -67,12 +54,12 @@ abstract class BaseController<Entity> {
       }
       res.end(JSON.stringify(entity));
     } catch (err) {
-      console.log(err);
+      this.errorHandling(err, res);
+      return;
     }
   }
 
   public async create(req: any, res: any) {
-
     try {
       req.body = await this.parseBody(req);
 
@@ -80,39 +67,74 @@ abstract class BaseController<Entity> {
       res.statusCode = 201;
       res.end(JSON.stringify(entity));
     } catch (err) {
-      console.log(err);
-      /* this.errorHandling(err, res); */
+      this.errorHandling(err, res);
+      return;
     }
   }
 
   public async update(req: any, res: any) {
+    let session: Session;
+
+    session = await this.validateUserSession(req, res);
 
     try {
-      const [, , userId] = req.url.split('/');
       req.body = await this.parseBody(req);
-      const updatedEntity = await this.repository.update(userId, req.body);
+      const updatedEntity = await this.repository.update(
+        session.user.id,
+        req.body,
+      );
       res.statusCode = 200;
       res.end(JSON.stringify(updatedEntity));
     } catch (err) {
-      console.log(err);
-      /* this.errorHandling(err, res); */
+      this.errorHandling(err, res);
+      return;
     }
   }
 
   public async delete(req: any, res: any) {
-    
+    let session: Session;
+
+    session = await this.validateUserSession(req, res);
+
     try {
-      const [, , userId] = req.url.split('/');
-      const deletedEntity = await this.repository.delete(userId);
+      const deletedEntity = await this.repository.delete(session.user.id);
       res.statusCode = 200;
       res.end(JSON.stringify(deletedEntity));
     } catch (err) {
-      console.log(err);
-      /* this.errorHandling(err, res); */
+      this.errorHandling(err, res);
+      return;
     }
   }
 
-  protected getValidUserSessionByToken(token: string) {
+  protected async validateUserSession(req: IncomingMessage, res: any) {
+    let session: Session;
+    const [, , userId] = req.url.split('/');
+    let token: string | Error;
+
+    try {
+      token = getTokenFromCookie(req.headers.cookie);
+    } catch (err) {
+      this.errorHandling(err, res);
+      return;
+    }
+
+    try {
+      session = await this.getValidUserSessionByToken(token as string);
+    } catch (err) {
+      this.errorHandling(err, res);
+      return;
+    }
+
+    if (session.user.id !== +userId) {
+      res.statusCode = 401;
+      res.end(JSON.stringify('Unauthorized'));
+      return;
+    }
+
+    return session;
+  }
+
+  private getValidUserSessionByToken(token: string) {
     return getRepository(Session).findOneOrFail(
       {
         token,
@@ -122,11 +144,10 @@ abstract class BaseController<Entity> {
     );
   }
 
-  /* errorHandling(err: any, res: any) {
-    let statusCode = err.status || 500;
-
+  protected errorHandling(err: any, res: any) {
+    res.statusCode = err.status || 500;
     res.end(err.message);
-  } */
+  }
   protected async parseBody(req: any) {
     req.body = '';
     await req.on('data', (chunk) => {
