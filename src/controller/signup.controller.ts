@@ -1,11 +1,11 @@
-import { LessThan, getRepository } from 'typeorm';
+import { LessThan, Repository, getRepository } from 'typeorm';
 import BaseController from './base.controller';
 import { Session } from '../entity/Session';
 import { User } from '../entity/User';
 import { checkIfUserExists, validateEntity } from './utils/utils';
 import { createSerializedSignupTokenCookie } from '../entity/utils/cookies';
 
-export class SignupController extends BaseController<Session> {
+export class SignupController extends BaseController<Session, Repository<Session>> {
   constructor() {
     super();
     this.repository = getRepository(Session);

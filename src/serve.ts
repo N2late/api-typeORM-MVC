@@ -3,9 +3,14 @@ import { config } from './ormconfig';
 import App from './app';
 import 'reflect-metadata';
 import UserController from './controller/user.controller';
-
 import SignupController from './controller/signup.controller';
 import LoginController from './controller/login.controller';
+import BookController from './controller/book.controller';
+import GenreController from './controller/genre.controller';
+import AuthorController from './controller/author.controller';
+import BookShelfController from './controller/bookshelf.controller';
+import RatingController from './controller/rating.controller';
+import RecommendationController from './controller/recommendation.controller';
 
 let connection: Connection;
 const main = async () => {
@@ -15,7 +20,17 @@ const main = async () => {
     });
 
     console.log('Connected to DB');
-    const app = new App([new UserController(), new SignupController(), new LoginController()]);
+    const app = new App([
+      new UserController(),
+      new SignupController(),
+      new LoginController(),
+      new BookController(),
+      new GenreController(),
+      new AuthorController(),
+      new BookShelfController(),
+      new RatingController(),
+      new RecommendationController()
+    ]);
     app.listen();
   } catch (err) {
     console.log('ERROR: ', err);

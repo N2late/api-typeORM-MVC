@@ -268,7 +268,7 @@ components:
         - title
         - author_id
         - genre_id
-        - bookshelve_id
+        - bookshelf_id
         - user_id
       properties:
         title:
@@ -277,7 +277,7 @@ components:
           type: integer
         genre_id:
           type: integer
-        bookshelve_id:
+        bookshelf_id:
           type: integer
         user_id:
           type: integer

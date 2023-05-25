@@ -8,7 +8,7 @@ class App {
   public server: http.Server;
   public port: number;
 
-  constructor(controllers: BaseController<BaseEntity>[]) {
+  constructor(controllers: any[]) {
     this.server = http.createServer();
     this.port = Number(process.env.PORT);
 
