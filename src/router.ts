@@ -8,10 +8,7 @@ interface Route {
 }
 
 interface FoundRoute {
-  handler: (
-    req: http.IncomingMessage,
-    res: http.ServerResponse,
-  ) => void;
+  handler: (req: http.IncomingMessage, res: http.ServerResponse) => void;
 }
 
 export class Router {
@@ -36,7 +33,7 @@ export class Router {
       );
     } else {
       route = this.routes.find(
-        (route) => route.method === method && route.url === url,
+        (route) => route.method === method && route.url === `/${path}`,
       );
     }
 

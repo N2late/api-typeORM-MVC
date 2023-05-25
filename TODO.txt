@@ -1,9 +1,7 @@
-0 - BaseController
-0.1 - Add error handling method to base controller. : DONE
-0.2 - Add getValidUserBySessionToken to all req methods that need it. DONE
-0.4 - PUT /users shouldn't do anything
-0.5. - PUT users/:id
-
 3. create book logic
+
+3.1 Show method for the id and query -> create a BookRepository extends Repo with the findByBookshelf method.
+3.2 Update book
+3.3 add some examples to read and want to read
 
 4. create recommendation logic

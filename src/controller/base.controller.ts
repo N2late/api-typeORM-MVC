@@ -5,10 +5,12 @@ import { getTokenFromCookie } from './utils/utils';
 import { User } from '../entity/User';
 import { IncomingMessage } from 'http';
 
-abstract class BaseController<Entity> {
+
+
+abstract class BaseController<Entity, RepositoryType extends Repository<Entity>> {
   protected path = '/';
   public router = new Router();
-  public repository: Repository<Entity>;
+  public repository: RepositoryType;
   constructor() {
     // bind index to this
     this.index = this.index.bind(this);
@@ -22,6 +24,7 @@ abstract class BaseController<Entity> {
 
   public initializeRoutes(path: string) {
     this.path = path;
+
     if (this.path !== '/signup' && this.path !== '/login') {
       this.router.get(this.path, this.index);
       this.router.get(`${this.path}/:id`, this.show);
@@ -46,6 +49,10 @@ abstract class BaseController<Entity> {
     let session: Session;
 
     session = await this.validateUserSession(req, res);
+
+    if (!session) {
+      return;
+    }
 
     try {
       const entity = await this.repository.findOne(session.user.id);
@@ -108,7 +115,7 @@ abstract class BaseController<Entity> {
 
   protected async validateUserSession(req: IncomingMessage, res: any) {
     let session: Session;
-    const [, , userId] = req.url.split('/');
+
     let token: string | Error;
 
     try {
@@ -125,10 +132,13 @@ abstract class BaseController<Entity> {
       return;
     }
 
-    if (session.user.id !== +userId) {
-      res.statusCode = 401;
-      res.end(JSON.stringify('Unauthorized'));
-      return;
+    if (this.path.includes('/users')) {
+      const [, , userId] = req.url.split('/');
+      if (session.user.id !== +userId) {
+        res.statusCode = 401;
+        res.end(JSON.stringify('Unauthorized'));
+        return;
+      }
     }
 
     return session;
@@ -147,6 +157,7 @@ abstract class BaseController<Entity> {
   protected errorHandling(err: any, res: any) {
     res.statusCode = err.status || 500;
     res.end(err.message);
+    return;
   }
   protected async parseBody(req: any) {
     req.body = '';
