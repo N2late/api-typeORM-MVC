@@ -10,6 +10,7 @@ import GenreController from './controller/genre.controller';
 import AuthorController from './controller/author.controller';
 import BookShelfController from './controller/bookshelf.controller';
 import RatingController from './controller/rating.controller';
+import RecommendationController from './controller/recommendation.controller';
 
 let connection: Connection;
 const main = async () => {
@@ -28,6 +29,7 @@ const main = async () => {
       new AuthorController(),
       new BookShelfController(),
       new RatingController(),
+      new RecommendationController()
     ]);
     app.listen();
   } catch (err) {

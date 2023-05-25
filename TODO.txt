@@ -1,7 +1,7 @@
 3. create book logic
 
-3.1 Show method for the id and query -> create a BookRepository extends Repo with the findByBookshelf method.
 3.2 Update book
 3.3 add some examples to read and want to read
+3.4. Fix index method to get all books from user if no query is passed.
 
 4. create recommendation logic
