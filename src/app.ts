@@ -1,8 +1,7 @@
 import * as http from 'http';
 import 'dotenv/config';
 import 'reflect-metadata';
-import BaseController from './controller/base.controller';
-import { BaseEntity } from 'typeorm';
+
 
 class App {
   public server: http.Server;
@@ -13,12 +12,8 @@ class App {
     this.port = Number(process.env.PORT);
 
     this.initControllers(controllers);
-    /* this.initErrorHandling(); */
   }
 
-  /* private initErrorHandling() {
-    this.server.on('request', errorMiddleware);
-  } */
 
   private initControllers(controllers) {
     this.server.on('request', (req, res) => {
