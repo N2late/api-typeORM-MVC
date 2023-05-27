@@ -43,7 +43,7 @@ class BookController extends BaseController<Book, BookRepository> {
     });
     book.genre = await getRepository(Genre).findOne(req.body.genreId);
     book.user = await getRepository(User).findOne(req.body.userId);
-    book.bookShelf = await getRepository(Bookshelf).findOne(
+    book.bookshelf = await getRepository(Bookshelf).findOne(
       req.body.bookShelfId,
     );
     book.rating = await getRepository(Rating).findOne(req.body.ratingId);
@@ -88,6 +88,9 @@ class BookController extends BaseController<Book, BookRepository> {
         +req.body.userId,
         id,
       );
+      res.end(JSON.stringify(books));
+    } else {
+      const books = await this.repository.findByUserId(+req.body.userId);
       res.end(JSON.stringify(books));
     }
   }

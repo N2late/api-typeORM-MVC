@@ -42,7 +42,7 @@ export class Book extends BaseSchema {
 
   @ManyToOne(() => Bookshelf, (bookShelf) => bookShelf.id)
   @JoinColumn({ name: 'bookShelfId' })
-  bookShelf: Bookshelf;
+  bookshelf: Bookshelf;
 
   @ManyToOne(() => Rating, (rating) => rating.id)
   @JoinColumn({ name: 'ratingId' })
@@ -51,10 +51,31 @@ export class Book extends BaseSchema {
 
 @EntityRepository(Book)
 export class BookRepository extends Repository<Book> {
-public async findByShelfState(userId: number, shelfId: number): Promise<Book[]> {
+  public async findByShelfState(userId: number, shelfId: number): Promise<Book[]> {
     return this.createQueryBuilder('book')
       .where('book.bookShelfId = :shelfId', { shelfId })
       .andWhere('book.userId = :userId', { userId})
       .getMany();
+  }
+
+  public async findByUserId(userId: number): Promise<Book[]> {
+    return this.createQueryBuilder('book')
+      .where('book.userId = :userId', { userId })
+      .getMany();
+  }
+
+  public async getBooksByUserWithDetails(userId: number): Promise<Book[]> {
+    return this.createQueryBuilder('book')
+      .select('book.title', 'title')
+      .addSelect('author.name', 'author')
+      .leftJoin('book.author', 'author')
+      .addSelect('rating.type', 'rating')
+      .leftJoin('book.rating', 'rating')
+      .addSelect('genre.type', 'genre')
+      .leftJoin('book.genre', 'genre')
+      .addSelect('bookshelf.state', 'bookshelf')
+      .leftJoin('book.bookshelf', 'bookshelf')
+      .where('book.user = :userId', { userId })
+      .getRawMany();
   }
 }

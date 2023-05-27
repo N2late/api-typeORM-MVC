@@ -2,6 +2,5 @@
 
 3.2 Update book
 3.3 add some examples to read and want to read
-3.4. Fix index method to get all books from user if no query is passed.
 
 4. create recommendation logic
