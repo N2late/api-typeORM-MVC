@@ -11,30 +11,32 @@ interface FoundRoute {
   handler: (req: http.IncomingMessage, res: http.ServerResponse) => void;
 }
 
+type httpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+type urlParser = typeof urlParser;
+
 export class Router {
   public routes: Route[] = [];
+  private urlParser: urlParser;
 
-  private addRoute(
-    method: string,
-    url: string,
-    handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
-  ) {
-    this.routes.push({ method, url, handler });
+  // Refactor this to use dependency injection -> better testability and decoupling
+  constructor(urlParser: urlParser) {
+    this.urlParser = urlParser;
   }
 
   public findRoute(method: string, url: string): FoundRoute | null {
-    const { pathname } = urlParser.parse(url, true);
+    // parseUrl logic was decoupled to a separate function -> better readability and maintainability
+    const { pathname } = this.parseUrl(url);
     const [, path, userId] = pathname.split('/');
 
+    // route matching logic is now in a separate function -> better readability and maintainability
     let route;
     if (userId && !isNaN(+userId)) {
-      route = this.routes.find(
-        (route) => route.method === method && route.url === `/${path}/:id`,
-      );
+      const pattern = `/${path}/:userId`;
+      route = this.findRouteByPattern(method, pattern);
     } else {
-      route = this.routes.find(
-        (route) => route.method === method && route.url === `/${path}`,
-      );
+      const pattern = `/${path}`;
+      route = this.findRouteByPattern(method, pattern);
     }
 
     if (!route) {
@@ -46,31 +48,36 @@ export class Router {
     };
   }
 
-  public get(
-    route: string,
-    handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
-  ) {
-    this.addRoute('GET', route, handler);
+  //factory method -> eliminate code duplication and make easier to add new routes
+  private createRouteMethod(method: httpMethod) {
+    return (
+      route: string,
+      handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
+    ) => {
+      this.addRoute(method, route, handler);
+    };
   }
 
-  public post(
-    route: string,
+  public get = this.createRouteMethod('GET');
+  public post = this.createRouteMethod('POST');
+  public put = this.createRouteMethod('PUT');
+  public delete = this.createRouteMethod('DELETE');
+
+  private addRoute(
+    method: string,
+    url: string,
     handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
   ) {
-    this.addRoute('POST', route, handler);
+    this.routes.push({ method, url, handler });
   }
 
-  public put(
-    route: string,
-    handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
-  ) {
-    this.addRoute('PUT', route, handler);
+  private parseUrl(url: string) {
+    return this.urlParser.parse(url, true);
   }
 
-  public delete(
-    route: string,
-    handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
-  ) {
-    this.addRoute('DELETE', route, handler);
+  private findRouteByPattern(method: string, pattern: string) {
+    return this.routes.find(
+      (route) => route.method === method && route.url === pattern,
+    );
   }
 }

@@ -4,12 +4,14 @@ import { Session } from '../entity/Session';
 import { getTokenFromCookie } from './utils/utils';
 import { User } from '../entity/User';
 import { IncomingMessage } from 'http';
+import urlParser from 'url';
 
-
-
-abstract class BaseController<Entity, RepositoryType extends Repository<Entity>> {
+abstract class BaseController<
+  Entity,
+  RepositoryType extends Repository<Entity>,
+> {
   protected path = '/';
-  public router = new Router();
+  public router = new Router(urlParser);
   public repository: RepositoryType;
   constructor() {
     // bind index to this
