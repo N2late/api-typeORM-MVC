@@ -1,6 +1,6 @@
 import { Connection, createConnection } from 'typeorm';
 import { config } from './ormconfig';
-import App from './app';
+import App, { HttpServer } from './app';
 import 'reflect-metadata';
 import UserController from './controller/user.controller';
 import SignupController from './controller/signup.controller';
@@ -30,7 +30,7 @@ const main = async () => {
       new BookShelfController(),
       new RatingController(),
       new RecommendationController()
-    ]);
+    ], new HttpServer());
     app.listen();
   } catch (err) {
     console.log('ERROR: ', err);
