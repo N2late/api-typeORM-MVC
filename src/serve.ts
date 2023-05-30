@@ -1,41 +1,24 @@
-import { Connection, createConnection } from 'typeorm';
-import { config } from './ormconfig';
+import { createConnection } from 'typeorm';
+import { dbConfig } from './ormconfig';
 import App, { HttpServer } from './app';
 import 'reflect-metadata';
-import UserController from './controller/user.controller';
-import SignupController from './controller/signup.controller';
-import LoginController from './controller/login.controller';
-import BookController from './controller/book.controller';
-import GenreController from './controller/genre.controller';
-import AuthorController from './controller/author.controller';
-import BookShelfController from './controller/bookshelf.controller';
-import RatingController from './controller/rating.controller';
-import RecommendationController from './controller/recommendation.controller';
+import registerControllers from './controller/registerControllers';
 
-let connection: Connection;
-const main = async () => {
+const startServer = async (): Promise<void> => {
   try {
-    connection = await createConnection({
-      ...config,
+    await createConnection({
+      ...dbConfig,
     });
 
-    console.log('Connected to DB');
-    const app = new App([
-      new UserController(),
-      new SignupController(),
-      new LoginController(),
-      new BookController(),
-      new GenreController(),
-      new AuthorController(),
-      new BookShelfController(),
-      new RatingController(),
-      new RecommendationController()
-    ], new HttpServer());
+    console.log('Connected to the database');
+    const app = new App(registerControllers(), new HttpServer());
     app.listen();
-  } catch (err) {
-    console.log('ERROR: ', err);
-    throw new Error('Failed to connect to DB');
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to connect to the database');
   }
 };
 
-main();
+startServer().catch((err) => {
+  console.log('ERROR: ', err);
+});
