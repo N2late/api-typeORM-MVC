@@ -2,7 +2,7 @@ import { LessThan, ObjectType, Repository, getRepository } from 'typeorm';
 import BaseController from './base.controller';
 import { Session } from '../entity/Session';
 import { User } from '../entity/User';
-import { checkIfUserExists, validateEntity } from './utils/utils';
+import ValidationService from './utils/validationService';
 import { createSerializedSignupTokenCookie } from '../entity/utils/cookies';
 
 export class SignupController extends BaseController<Session, Repository<Session>> {
@@ -20,7 +20,7 @@ export class SignupController extends BaseController<Session, Repository<Session
 
     // check if user already exists
     try {
-      await checkIfUserExists(email);
+      await ValidationService.checkIfUserExists(email);
     } catch (err) {
       res.statusCode = 400;
       res.end(JSON.stringify({ message: err.message }));
@@ -34,7 +34,7 @@ export class SignupController extends BaseController<Session, Repository<Session
     user.passwordHash = passwordHash;
 
     try {
-      await validateEntity(user);
+      await ValidationService.validateEntity(user);
     } catch (err) {
       res.statusCode = 400;
       res.end(JSON.stringify({ message: err.message }));
