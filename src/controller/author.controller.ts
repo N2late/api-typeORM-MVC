@@ -7,8 +7,8 @@ import BaseController from "./base.controller";
 
 class AuthorController extends BaseController<Author, Repository<Author>> {
     constructor(Author:  ObjectType<Author>) {
-        super();
-        this.repository = getRepository(Author);
+        const repository = getRepository(Author);
+        super(repository);
         this.initializeRoutes('/authors');
     }
 }

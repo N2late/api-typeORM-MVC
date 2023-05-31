@@ -6,8 +6,8 @@ import { Bookshelf } from "../entity/Books/Bookshelf";
 
 class BookShelfController extends BaseController<Bookshelf, Repository<Bookshelf>> {
     constructor(Bookshelf: ObjectType<Bookshelf>) {
-        super();
-        this.repository = getRepository(Bookshelf);
+        const repository = getRepository(Bookshelf);
+        super(repository);
         this.initializeRoutes('/bookshelves');
     }
 }

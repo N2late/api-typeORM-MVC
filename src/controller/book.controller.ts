@@ -8,18 +8,19 @@ import { Rating } from '../entity/Books/Rating';
 import { Author } from '../entity/Books/Author';
 import { Session } from '../entity/Session';
 import { URL } from 'url';
+import Authorization from '../authorization/authorization';
 
 class BookController extends BaseController<Book, BookRepository> {
   constructor(bookRepository: ObjectType<BookRepository>) {
-    super();
-    this.repository = getCustomRepository(bookRepository);
+    const repository = getCustomRepository(bookRepository);
+    super(repository);
     this.initializeRoutes('/books');
   }
 
   public async create(req, res) {
     req.body = await this.parseBody(req);
     let session: Session;
-    session = await this.validateUserSession(req, res);
+    session = await Authorization.validateUserSession(req, res, this.path);
 
     if (!session || session.user.id !== +req.body.userId) {
       res.statusCode = 401;
@@ -64,7 +65,7 @@ class BookController extends BaseController<Book, BookRepository> {
 
     let session: Session;
 
-    session = await this.validateUserSession(req, res);
+    session = await Authorization.validateUserSession(req, res, this.path);
 
     if (!session) {
       return;

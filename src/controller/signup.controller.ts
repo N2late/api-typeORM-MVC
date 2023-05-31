@@ -1,4 +1,4 @@
-import { Entity, LessThan, ObjectType, Repository, getRepository } from 'typeorm';
+import { LessThan, ObjectType, Repository, getRepository } from 'typeorm';
 import BaseController from './base.controller';
 import { Session } from '../entity/Session';
 import { User } from '../entity/User';
@@ -7,8 +7,8 @@ import { createSerializedSignupTokenCookie } from '../entity/utils/cookies';
 
 export class SignupController extends BaseController<Session, Repository<Session>> {
   constructor(Session: ObjectType<Session>) {
-    super();
-    this.repository = getRepository(Session);
+    const repository = getRepository(Session);
+    super(repository);
     this.initializeRoutes('/signup');
   }
 

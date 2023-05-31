@@ -6,8 +6,8 @@ import BaseController from "./base.controller";
 
 class GenreController extends BaseController<Genre, Repository<Genre>> {
     constructor(Genre: ObjectType<Genre>) {
-        super();
-        this.repository = getRepository(Genre);
+        const repository = getRepository(Genre);
+        super(repository);
         this.initializeRoutes('/genres');
     }
 }

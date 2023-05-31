@@ -5,8 +5,8 @@ import { aiPrompt, aiPromptWTR, promptOpenAI } from './utils/openAI';
 
 class RecommendationController extends BaseController<Book, BookRepository> {
   constructor(BookRepository: ObjectType<BookRepository>) {
-    super();
-    this.repository = getCustomRepository(BookRepository);
+    const repository = getCustomRepository(BookRepository);
+    super(repository);
     this.initializeRoutes('/recommendation');
   }
 

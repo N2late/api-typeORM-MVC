@@ -6,8 +6,8 @@ import BaseController from "./base.controller";
 
 class RatingController extends BaseController<Rating, Repository<Rating>> {
     constructor(Rating: ObjectType<Rating>) {
-        super();
-        this.repository = getRepository(Rating);
+        const repository = getRepository(Rating);
+        super(repository);
         this.initializeRoutes('/ratings');
     }
 }

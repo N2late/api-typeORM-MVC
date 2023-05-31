@@ -28,11 +28,4 @@ export function checkInputIsNotEmpty(input: string) {
   }
 }
 
-export function getTokenFromCookie(cookie: string): string | Error {
-  if (!cookie) {
-    throw new Error('Session token not found');
-  }
-  const token = cookie.split('=')[1];
-  const decodedToken = decodeURIComponent(token);
-  return decodedToken;
-}
+

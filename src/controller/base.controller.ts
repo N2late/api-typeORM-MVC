@@ -1,11 +1,10 @@
-import { MoreThan, Repository, getRepository } from 'typeorm';
+import { Repository} from 'typeorm';
 import { Router } from '../router';
 import { Session } from '../entity/Session';
-import { getTokenFromCookie } from './utils/utils';
 import { User } from '../entity/User';
 import { IncomingMessage, ServerResponse } from 'http';
 import urlParser from 'url';
-
+import Authorization from '../authorization/authorization';
 
 abstract class BaseController<
   Entity,
@@ -15,8 +14,8 @@ abstract class BaseController<
   public router: Router = new Router(urlParser);
   public repository: RepositoryType;
 
-  constructor() {
-    // bind index to this
+  constructor(repository: RepositoryType) {
+    this.repository = repository;
     this.bindMethodsToThis();
   }
 
@@ -46,7 +45,7 @@ abstract class BaseController<
   public async show(req: IncomingMessage, res: ServerResponse): Promise<void> {
     let session: Session;
 
-    session = await this.validateUserSession(req, res);
+    session = await Authorization.validateUserSession(req, res, this.path);
 
     if (!session) {
       return;
@@ -64,7 +63,10 @@ abstract class BaseController<
     }
   }
 
-  public async create(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  public async create(
+    req: IncomingMessage,
+    res: ServerResponse,
+  ): Promise<void> {
     try {
       let body = await this.parseBody(req);
 
@@ -77,17 +79,17 @@ abstract class BaseController<
     }
   }
 
-  public async update(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  public async update(
+    req: IncomingMessage,
+    res: ServerResponse,
+  ): Promise<void> {
     let session: Session;
 
-    session = await this.validateUserSession(req, res);
+    session = await Authorization.validateUserSession(req, res, this.path);
 
     try {
       let body = await this.parseBody(req);
-      const updatedEntity = await this.repository.update(
-        session.user.id,
-        body,
-      );
+      const updatedEntity = await this.repository.update(session.user.id, body);
       res.statusCode = 200;
       res.end(JSON.stringify(updatedEntity));
     } catch (err) {
@@ -96,10 +98,13 @@ abstract class BaseController<
     }
   }
 
-  public async delete(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  public async delete(
+    req: IncomingMessage,
+    res: ServerResponse,
+  ): Promise<void> {
     let session: Session;
 
-    session = await this.validateUserSession(req, res);
+    session = await Authorization.validateUserSession(req, res, this.path);
 
     try {
       const deletedEntity = await this.repository.delete(session.user.id);
@@ -111,52 +116,11 @@ abstract class BaseController<
     }
   }
 
-  protected async validateUserSession(req: IncomingMessage, res: ServerResponse): Promise<Session> {
-    let session: Session;
-
-    let token: string | Error;
-
-    try {
-      token = getTokenFromCookie(req.headers.cookie);
-    } catch (err) {
-      this.handleErrors(err, res);
-      return;
-    }
-
-    try {
-      session = await this.getValidUserSessionByToken(token as string);
-    } catch (err) {
-      this.handleErrors(err, res);
-      return;
-    }
-
-    if (this.path.includes('/users')) {
-      const [, , userId] = req.url.split('/');
-      if (session.user.id !== +userId) {
-        res.statusCode = 401;
-        res.end(JSON.stringify('Unauthorized'));
-        return;
-      }
-    }
-
-    return session;
-  }
-
-  private getValidUserSessionByToken(token: string): Promise<Session> {
-    return getRepository(Session).findOneOrFail(
-      {
-        token,
-        expiryTimestamp: MoreThan(new Date().getTime() / 1000),
-      },
-      { relations: ['user'] },
-    );
-  }
-
   protected handleErrors(err: any, res: ServerResponse): void {
     res.statusCode = err.status || 500;
     res.end(err.message);
-    return;
   }
+
   protected parseBody(req: IncomingMessage): Promise<any> {
     return new Promise((resolve, reject) => {
       let body = '';
@@ -181,9 +145,7 @@ abstract class BaseController<
       'update',
       'delete',
       'show',
-      'handleErrors',
-      'validateUserSession',
-      'getValidUserSessionByToken',
+      'handleErrors'
     ];
     methods.forEach((method) => {
       this[method] = this[method].bind(this);
