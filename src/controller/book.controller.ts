@@ -52,7 +52,7 @@ class BookController extends BaseController<Book, BookRepository> {
       await this.repository.save(book);
       res.end(JSON.stringify(book));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }

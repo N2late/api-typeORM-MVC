@@ -1,4 +1,4 @@
-import { MoreThan, Repository, getCustomRepository, getRepository } from 'typeorm';
+import { MoreThan, Repository, getRepository } from 'typeorm';
 import { Router } from '../router';
 import { Session } from '../entity/Session';
 import { getTokenFromCookie } from './utils/utils';
@@ -15,15 +15,8 @@ abstract class BaseController<
   public repository: RepositoryType;
 
   constructor() {
-
     // bind index to this
-    this.index = this.index.bind(this);
-    this.create = this.create.bind(this);
-    this.parseBody = this.parseBody.bind(this);
-    this.update = this.update.bind(this);
-    this.delete = this.delete.bind(this);
-    this.show = this.show.bind(this);
-    this.errorHandling = this.errorHandling.bind(this);
+    this.bindMethodsToThis();
   }
 
   public initializeRoutes(path: string) {
@@ -44,7 +37,7 @@ abstract class BaseController<
 
       res.end(JSON.stringify(entities));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
@@ -65,7 +58,7 @@ abstract class BaseController<
       }
       res.end(JSON.stringify(entity));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
@@ -78,7 +71,7 @@ abstract class BaseController<
       res.statusCode = 201;
       res.end(JSON.stringify(entity));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
@@ -97,7 +90,7 @@ abstract class BaseController<
       res.statusCode = 200;
       res.end(JSON.stringify(updatedEntity));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
@@ -112,7 +105,7 @@ abstract class BaseController<
       res.statusCode = 200;
       res.end(JSON.stringify(deletedEntity));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
@@ -125,14 +118,14 @@ abstract class BaseController<
     try {
       token = getTokenFromCookie(req.headers.cookie);
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
 
     try {
       session = await this.getValidUserSessionByToken(token as string);
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
 
@@ -158,7 +151,7 @@ abstract class BaseController<
     );
   }
 
-  protected errorHandling(err: any, res: any) {
+  protected handleErrors(err: any, res: any) {
     res.statusCode = err.status || 500;
     res.end(err.message);
     return;
@@ -170,6 +163,22 @@ abstract class BaseController<
     });
 
     return JSON.parse(req.body);
+  }
+
+  private bindMethodsToThis() {
+    const methods = [
+      'index',
+      'create',
+      'update',
+      'delete',
+      'show',
+      'handleErrors',
+      'validateUserSession',
+      'getValidUserSessionByToken',
+    ];
+    methods.forEach((method) => {
+      this[method] = this[method].bind(this);
+    });
   }
 }
 export default BaseController;
