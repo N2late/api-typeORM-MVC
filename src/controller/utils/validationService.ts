@@ -1,6 +1,7 @@
 import { validate } from 'class-validator';
 import { getRepository } from 'typeorm';
 import { User } from '../../entity/User';
+import { Author } from '../../entity';
 
 export class ValidationService {
   static async validateEntity(entity: any) {
@@ -27,6 +28,14 @@ export class ValidationService {
     if (!input) {
       throw new Error('Email and password are required');
     }
+  }
+
+  static async checkIfAuthorExists(authorName: string) {
+    const author = await getRepository(Author).findOne({ name: authorName });
+    if (author) {
+      return author;
+    }
+    return null;
   }
 }
 export default ValidationService;

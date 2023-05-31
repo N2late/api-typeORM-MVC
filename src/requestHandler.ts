@@ -1,3 +1,4 @@
+import ErrorHandler from './ErrorHandling';
 import { Controller } from './app';
 import { IncomingMessage, ServerResponse } from 'http';
 
@@ -14,16 +15,14 @@ class RequestHandler implements IRequestHandler {
   public handleRequest(req: IncomingMessage, res: ServerResponse) {
     const controller = this.findController(req);
     if (!controller) {
-      res.writeHead(404);
-      res.end('Not Found');
+      ErrorHandler.notFound(res, 'Route not found');
       return;
     }
 
     try {
       controller.currentRoute.handler(req, res);
     } catch (err) {
-      res.writeHead(500);
-      res.end('Internal Server Error');
+      ErrorHandler.internalServerError(res, err.message);
     }
   }
 

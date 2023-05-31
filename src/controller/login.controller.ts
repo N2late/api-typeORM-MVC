@@ -4,6 +4,7 @@ import BaseController from './base.controller';
 import { Session } from '../entity/Session';
 import { createSerializedSignupTokenCookie } from '../entity/utils/cookies';
 import ValidationService from './utils/validationService';
+import ErrorHandler from '../ErrorHandling';
 
 class LoginController extends BaseController<User, Repository<User>> {
   constructor(User: ObjectType<User>) {
@@ -14,24 +15,23 @@ class LoginController extends BaseController<User, Repository<User>> {
 
   public async create(req: any, res: any) {
     req.body = await this.parseBody(req);
-    const {email, passwordHash } = req.body;
+    const { email, passwordHash } = req.body;
 
     try {
       ValidationService.checkInputIsNotEmpty(email);
       ValidationService.checkInputIsNotEmpty(passwordHash);
-
     } catch (err) {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ message: err.message }));
+      ErrorHandler.handle(err, res);
       return;
     }
 
     try {
       const userMatched = await getRepository(User).findOneOrFail({ email });
-      const isPasswordHashValid = await userMatched.comparePassword(passwordHash);
+      const isPasswordHashValid = await userMatched.comparePassword(
+        passwordHash,
+      );
       if (!isPasswordHashValid) {
-        res.statusCode = 400;
-        res.end(JSON.stringify({ message: 'Invalid credentials' }));
+        ErrorHandler.badRequest(res, 'Invalid password');
         return;
       }
 
@@ -47,8 +47,7 @@ class LoginController extends BaseController<User, Repository<User>> {
       res.setHeader('Set-Cookie', serializedCookie);
       res.end(JSON.stringify({ userMatched }));
     } catch (err) {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ message: err.message }));
+      ErrorHandler.handle(err, res); 
     }
   }
 }

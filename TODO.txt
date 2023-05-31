@@ -4,5 +4,4 @@ Refactor:
     - login
     - signup
 
-Refactor (if needed):
-  - Src folder and file structure.
+Add authorization to recommendation create method.

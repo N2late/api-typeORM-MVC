@@ -1,14 +1,19 @@
-import { ObjectType, getCustomRepository, getRepository} from 'typeorm';
+import { ObjectType, getCustomRepository, getRepository } from 'typeorm';
 import BaseController from './base.controller';
-import { Book, BookRepository } from '../entity/Books/Book';
-import { Genre } from '../entity/Books/Genre';
-import { User } from '../entity/User';
-import { Bookshelf } from '../entity/Books/Bookshelf';
-import { Rating } from '../entity/Books/Rating';
-import { Author } from '../entity/Books/Author';
-import { Session } from '../entity/Session';
+import {
+  Author,
+  Genre,
+  User,
+  Bookshelf,
+  Rating,
+  Session,
+  Book,
+  BookRepository,
+} from '../entity';
 import { URL } from 'url';
 import Authorization from '../authorization/authorization';
+import ValidationService from './utils/validationService';
+import ErrorHandler from '../ErrorHandling';
 
 class BookController extends BaseController<Book, BookRepository> {
   constructor(bookRepository: ObjectType<BookRepository>) {
@@ -23,12 +28,13 @@ class BookController extends BaseController<Book, BookRepository> {
     session = await Authorization.validateUserSession(req, res, this.path);
 
     if (!session || session.user.id !== +req.body.userId) {
-      res.statusCode = 401;
-      res.end(JSON.stringify({ message: 'Unauthorized' }));
+      ErrorHandler.unauthorized(res, 'Unauthorized');
       return;
     }
 
-    const author = await this.checkIfAuthorExists(req.body.authorName);
+    const author = await ValidationService.checkIfAuthorExists(
+      req.body.authorName,
+    );
 
     if (!author) {
       const newAuthor = new Author();
@@ -53,7 +59,7 @@ class BookController extends BaseController<Book, BookRepository> {
       await this.repository.save(book);
       res.end(JSON.stringify(book));
     } catch (err) {
-      this.handleErrors(err, res);
+      ErrorHandler.handle(err, res);
       return;
     }
   }
@@ -72,8 +78,7 @@ class BookController extends BaseController<Book, BookRepository> {
     }
 
     if (!session || session.user.id !== +req.body.userId) {
-      res.statusCode = 401;
-      res.end(JSON.stringify({ message: 'Unauthorized' }));
+      ErrorHandler.unauthorized(res, 'Unauthorized');
       return;
     }
 
@@ -94,13 +99,6 @@ class BookController extends BaseController<Book, BookRepository> {
       const books = await this.repository.findByUserId(+req.body.userId);
       res.end(JSON.stringify(books));
     }
-  }
-  private async checkIfAuthorExists(authorName: string) {
-    const author = await getRepository(Author).findOne({ name: authorName });
-    if (author) {
-      return author;
-    }
-    return null;
   }
 }
 

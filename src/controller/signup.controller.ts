@@ -4,6 +4,7 @@ import { Session } from '../entity/Session';
 import { User } from '../entity/User';
 import ValidationService from './utils/validationService';
 import { createSerializedSignupTokenCookie } from '../entity/utils/cookies';
+import ErrorHandler from '../ErrorHandling';
 
 export class SignupController extends BaseController<Session, Repository<Session>> {
   constructor(Session: ObjectType<Session>) {
@@ -22,8 +23,7 @@ export class SignupController extends BaseController<Session, Repository<Session
     try {
       await ValidationService.checkIfUserExists(email);
     } catch (err) {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ message: err.message }));
+      ErrorHandler.badRequest(res, err.message);
       return;
     }
 
@@ -62,8 +62,7 @@ export class SignupController extends BaseController<Session, Repository<Session
       res.setHeader('Set-Cookie', serializedCookie);
       res.end(JSON.stringify({ user: newUser }));
     } catch (err) {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ message: err.message }));
+      ErrorHandler.handle(err, res);
     }
   }
 }

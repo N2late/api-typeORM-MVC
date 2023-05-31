@@ -1,10 +1,11 @@
-import { Repository} from 'typeorm';
+import { Repository } from 'typeorm';
 import { Router } from '../router';
 import { Session } from '../entity/Session';
 import { User } from '../entity/User';
 import { IncomingMessage, ServerResponse } from 'http';
 import urlParser from 'url';
 import Authorization from '../authorization/authorization';
+import ErrorHandler from '../ErrorHandling';
 
 abstract class BaseController<
   Entity,
@@ -37,7 +38,7 @@ abstract class BaseController<
 
       res.end(JSON.stringify(entities));
     } catch (err) {
-      this.handleErrors(err, res);
+      ErrorHandler.handle(err, res);
       return;
     }
   }
@@ -58,7 +59,7 @@ abstract class BaseController<
       }
       res.end(JSON.stringify(entity));
     } catch (err) {
-      this.handleErrors(err, res);
+      Error;
       return;
     }
   }
@@ -74,7 +75,7 @@ abstract class BaseController<
       res.statusCode = 201;
       res.end(JSON.stringify(entity));
     } catch (err) {
-      this.handleErrors(err, res);
+      Error;
       return;
     }
   }
@@ -93,7 +94,7 @@ abstract class BaseController<
       res.statusCode = 200;
       res.end(JSON.stringify(updatedEntity));
     } catch (err) {
-      this.handleErrors(err, res);
+      Error;
       return;
     }
   }
@@ -111,14 +112,9 @@ abstract class BaseController<
       res.statusCode = 200;
       res.end(JSON.stringify(deletedEntity));
     } catch (err) {
-      this.handleErrors(err, res);
+      Error;
       return;
     }
-  }
-
-  protected handleErrors(err: any, res: ServerResponse): void {
-    res.statusCode = err.status || 500;
-    res.end(err.message);
   }
 
   protected parseBody(req: IncomingMessage): Promise<any> {
@@ -139,14 +135,7 @@ abstract class BaseController<
   }
 
   private bindMethodsToThis(): void {
-    const methods = [
-      'index',
-      'create',
-      'update',
-      'delete',
-      'show',
-      'handleErrors'
-    ];
+    const methods = ['index', 'create', 'update', 'delete', 'show'];
     methods.forEach((method) => {
       this[method] = this[method].bind(this);
     });

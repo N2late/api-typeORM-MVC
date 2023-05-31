@@ -3,6 +3,7 @@ import { dbConfig } from './ormconfig';
 import App, { HttpServer } from './app';
 import 'reflect-metadata';
 import registerControllers from './controller/utils/registerControllers';
+import ErrorHandler from './ErrorHandling';
 
 const startServer = async (): Promise<void> => {
   try {
@@ -14,8 +15,7 @@ const startServer = async (): Promise<void> => {
     const app = new App(registerControllers(), new HttpServer());
     app.listen();
   } catch (error) {
-    console.error(error);
-    throw new Error('Failed to connect to the database');
+    ErrorHandler.failedConnection(error, "Failed to connect to the database")
   }
 };
 
