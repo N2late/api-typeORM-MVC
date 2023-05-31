@@ -3,15 +3,16 @@ import { Router } from '../router';
 import { Session } from '../entity/Session';
 import { getTokenFromCookie } from './utils/utils';
 import { User } from '../entity/User';
-import { IncomingMessage } from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import urlParser from 'url';
+
 
 abstract class BaseController<
   Entity,
   RepositoryType extends Repository<Entity>,
 > {
-  protected path = '/';
-  public router = new Router(urlParser);
+  protected path: string = '/';
+  public router: Router = new Router(urlParser);
   public repository: RepositoryType;
 
   constructor() {
@@ -19,7 +20,7 @@ abstract class BaseController<
     this.bindMethodsToThis();
   }
 
-  public initializeRoutes(path: string) {
+  public initializeRoutes(path: string): void {
     this.path = path;
 
     if (this.path !== '/signup' && this.path !== '/login') {
@@ -31,7 +32,7 @@ abstract class BaseController<
     if (!this.path.includes('/users')) this.router.post(this.path, this.create);
   }
 
-  public async index(req: any, res: any) {
+  public async index(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       const entities = await this.repository.find();
 
@@ -42,7 +43,7 @@ abstract class BaseController<
     }
   }
 
-  public async show(req: any, res: any) {
+  public async show(req: IncomingMessage, res: ServerResponse): Promise<void> {
     let session: Session;
 
     session = await this.validateUserSession(req, res);
@@ -63,11 +64,11 @@ abstract class BaseController<
     }
   }
 
-  public async create(req: any, res: any) {
+  public async create(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
-      req.body = await this.parseBody(req);
+      let body = await this.parseBody(req);
 
-      const entity = await this.repository.save(req.body);
+      const entity = await this.repository.save(body);
       res.statusCode = 201;
       res.end(JSON.stringify(entity));
     } catch (err) {
@@ -76,16 +77,16 @@ abstract class BaseController<
     }
   }
 
-  public async update(req: any, res: any) {
+  public async update(req: IncomingMessage, res: ServerResponse): Promise<void> {
     let session: Session;
 
     session = await this.validateUserSession(req, res);
 
     try {
-      req.body = await this.parseBody(req);
+      let body = await this.parseBody(req);
       const updatedEntity = await this.repository.update(
         session.user.id,
-        req.body,
+        body,
       );
       res.statusCode = 200;
       res.end(JSON.stringify(updatedEntity));
@@ -95,7 +96,7 @@ abstract class BaseController<
     }
   }
 
-  public async delete(req: any, res: any) {
+  public async delete(req: IncomingMessage, res: ServerResponse): Promise<void> {
     let session: Session;
 
     session = await this.validateUserSession(req, res);
@@ -110,7 +111,7 @@ abstract class BaseController<
     }
   }
 
-  protected async validateUserSession(req: IncomingMessage, res: any) {
+  protected async validateUserSession(req: IncomingMessage, res: ServerResponse): Promise<Session> {
     let session: Session;
 
     let token: string | Error;
@@ -141,7 +142,7 @@ abstract class BaseController<
     return session;
   }
 
-  private getValidUserSessionByToken(token: string) {
+  private getValidUserSessionByToken(token: string): Promise<Session> {
     return getRepository(Session).findOneOrFail(
       {
         token,
@@ -151,21 +152,29 @@ abstract class BaseController<
     );
   }
 
-  protected handleErrors(err: any, res: any) {
+  protected handleErrors(err: any, res: ServerResponse): void {
     res.statusCode = err.status || 500;
     res.end(err.message);
     return;
   }
-  protected async parseBody(req: any) {
-    req.body = '';
-    await req.on('data', (chunk) => {
-      req.body += chunk.toString();
+  protected parseBody(req: IncomingMessage): Promise<any> {
+    return new Promise((resolve, reject) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk.toString();
+      });
+      req.on('end', () => {
+        try {
+          const parsedBody = JSON.parse(body);
+          resolve(parsedBody);
+        } catch (err) {
+          reject(err);
+        }
+      });
     });
-
-    return JSON.parse(req.body);
   }
 
-  private bindMethodsToThis() {
+  private bindMethodsToThis(): void {
     const methods = [
       'index',
       'create',
