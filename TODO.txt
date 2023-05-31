@@ -1,6 +1,8 @@
-3. create book logic
+Refactor:
+ ->Controllers:
+    - book
+    - login
+    - signup
 
-3.2 Update book
-3.3 add some examples to read and want to read
-
-4. create recommendation logic
+Refactor (if needed):
+  - Src folder and file structure.
