@@ -1,6 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { MoreThan, getRepository } from 'typeorm';
 import { Session } from '../entity';
+import ErrorHandler from '../ErrorHandling';
 
 // Set up a session
 class Authorization {
@@ -9,10 +10,18 @@ class Authorization {
     res: ServerResponse,
     path: string,
   ): Promise<Session> {
-    const token = this.getTokenFromCookie(req.headers.cookie);
-    const session = await this.getValidUserSessionByToken(token);
-    this.validateUserSessionPath(session, path);
-    return session;
+    let token: string;
+    let session: Session;
+
+    try {
+      token = this.getTokenFromCookie(req.headers.cookie);
+      session = await this.getValidUserSessionByToken(token);
+      this.validateUserSessionPath(session, path);
+      return session;
+    } catch (err) {
+      ErrorHandler.handle(err, res);
+      return;
+    }
   }
 
   private getTokenFromCookie(cookie: string): string {
