@@ -1,10 +1,10 @@
-import { getCustomRepository } from 'typeorm';
+import { ObjectType, getCustomRepository } from 'typeorm';
 import { Book, BookRepository } from '../entity/Books/Book';
 import BaseController from './base.controller';
 import { aiPrompt, aiPromptWTR, promptOpenAI } from './utils/openAI';
 
 class RecommendationController extends BaseController<Book, BookRepository> {
-  constructor() {
+  constructor(BookRepository: ObjectType<BookRepository>) {
     super();
     this.repository = getCustomRepository(BookRepository);
     this.initializeRoutes('/recommendation');

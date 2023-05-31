@@ -1,12 +1,17 @@
 import { Controller } from './app';
+import { IncomingMessage, ServerResponse } from 'http';
 
-class RequestHandler {
+interface IRequestHandler {
+  handleRequest(req: IncomingMessage, res: ServerResponse): void;
+}
+
+class RequestHandler implements IRequestHandler {
   private controllers: Controller<any>[];
   constructor(controllers: Controller<any>[]) {
     this.controllers = controllers;
   }
 
-  public handleRequest(req, res) {
+  public handleRequest(req: IncomingMessage, res: ServerResponse) {
     const controller = this.findController(req);
     if (!controller) {
       res.writeHead(404);
@@ -23,7 +28,7 @@ class RequestHandler {
   }
 
   // Extracted the findController logic to a separate function for better readability and reusability.
-  private findController(req) {
+  private findController(req: IncomingMessage): Controller<any> | undefined {
     return this.controllers.find((controller) => {
       const route = controller.router.findRoute(req.method, req.url);
       if (route) {

@@ -1,4 +1,4 @@
-import { MoreThan, Repository, getRepository } from 'typeorm';
+import { MoreThan, Repository, getCustomRepository, getRepository } from 'typeorm';
 import { Router } from '../router';
 import { Session } from '../entity/Session';
 import { getTokenFromCookie } from './utils/utils';
@@ -13,7 +13,9 @@ abstract class BaseController<
   protected path = '/';
   public router = new Router(urlParser);
   public repository: RepositoryType;
+
   constructor() {
+
     // bind index to this
     this.index = this.index.bind(this);
     this.create = this.create.bind(this);

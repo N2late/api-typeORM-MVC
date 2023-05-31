@@ -1,4 +1,4 @@
-import { getCustomRepository, getRepository } from 'typeorm';
+import { ObjectType, getCustomRepository, getRepository} from 'typeorm';
 import BaseController from './base.controller';
 import { Book, BookRepository } from '../entity/Books/Book';
 import { Genre } from '../entity/Books/Genre';
@@ -10,9 +10,9 @@ import { Session } from '../entity/Session';
 import { URL } from 'url';
 
 class BookController extends BaseController<Book, BookRepository> {
-  constructor() {
+  constructor(bookRepository: ObjectType<BookRepository>) {
     super();
-    this.repository = getCustomRepository(BookRepository);
+    this.repository = getCustomRepository(bookRepository);
     this.initializeRoutes('/books');
   }
 

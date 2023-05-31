@@ -2,7 +2,7 @@ import { createConnection } from 'typeorm';
 import { dbConfig } from './ormconfig';
 import App, { HttpServer } from './app';
 import 'reflect-metadata';
-import registerControllers from './controller/registerControllers';
+import registerControllers from './controller/utils/registerControllers';
 
 const startServer = async (): Promise<void> => {
   try {
