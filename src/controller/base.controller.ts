@@ -1,30 +1,25 @@
-import { MoreThan, Repository, getRepository } from 'typeorm';
+import { Repository} from 'typeorm';
 import { Router } from '../router';
 import { Session } from '../entity/Session';
-import { getTokenFromCookie } from './utils/utils';
 import { User } from '../entity/User';
-import { IncomingMessage } from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import urlParser from 'url';
+import Authorization from '../authorization/authorization';
 
 abstract class BaseController<
   Entity,
   RepositoryType extends Repository<Entity>,
 > {
-  protected path = '/';
-  public router = new Router(urlParser);
+  protected path: string = '/';
+  public router: Router = new Router(urlParser);
   public repository: RepositoryType;
-  constructor() {
-    // bind index to this
-    this.index = this.index.bind(this);
-    this.create = this.create.bind(this);
-    this.parseBody = this.parseBody.bind(this);
-    this.update = this.update.bind(this);
-    this.delete = this.delete.bind(this);
-    this.show = this.show.bind(this);
-    this.errorHandling = this.errorHandling.bind(this);
+
+  constructor(repository: RepositoryType) {
+    this.repository = repository;
+    this.bindMethodsToThis();
   }
 
-  public initializeRoutes(path: string) {
+  public initializeRoutes(path: string): void {
     this.path = path;
 
     if (this.path !== '/signup' && this.path !== '/login') {
@@ -36,21 +31,21 @@ abstract class BaseController<
     if (!this.path.includes('/users')) this.router.post(this.path, this.create);
   }
 
-  public async index(req: any, res: any) {
+  public async index(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       const entities = await this.repository.find();
 
       res.end(JSON.stringify(entities));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
 
-  public async show(req: any, res: any) {
+  public async show(req: IncomingMessage, res: ServerResponse): Promise<void> {
     let session: Session;
 
-    session = await this.validateUserSession(req, res);
+    session = await Authorization.validateUserSession(req, res, this.path);
 
     if (!session) {
       return;
@@ -63,111 +58,98 @@ abstract class BaseController<
       }
       res.end(JSON.stringify(entity));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
 
-  public async create(req: any, res: any) {
+  public async create(
+    req: IncomingMessage,
+    res: ServerResponse,
+  ): Promise<void> {
     try {
-      req.body = await this.parseBody(req);
+      let body = await this.parseBody(req);
 
-      const entity = await this.repository.save(req.body);
+      const entity = await this.repository.save(body);
       res.statusCode = 201;
       res.end(JSON.stringify(entity));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
 
-  public async update(req: any, res: any) {
+  public async update(
+    req: IncomingMessage,
+    res: ServerResponse,
+  ): Promise<void> {
     let session: Session;
 
-    session = await this.validateUserSession(req, res);
+    session = await Authorization.validateUserSession(req, res, this.path);
 
     try {
-      req.body = await this.parseBody(req);
-      const updatedEntity = await this.repository.update(
-        session.user.id,
-        req.body,
-      );
+      let body = await this.parseBody(req);
+      const updatedEntity = await this.repository.update(session.user.id, body);
       res.statusCode = 200;
       res.end(JSON.stringify(updatedEntity));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
 
-  public async delete(req: any, res: any) {
+  public async delete(
+    req: IncomingMessage,
+    res: ServerResponse,
+  ): Promise<void> {
     let session: Session;
 
-    session = await this.validateUserSession(req, res);
+    session = await Authorization.validateUserSession(req, res, this.path);
 
     try {
       const deletedEntity = await this.repository.delete(session.user.id);
       res.statusCode = 200;
       res.end(JSON.stringify(deletedEntity));
     } catch (err) {
-      this.errorHandling(err, res);
+      this.handleErrors(err, res);
       return;
     }
   }
 
-  protected async validateUserSession(req: IncomingMessage, res: any) {
-    let session: Session;
-
-    let token: string | Error;
-
-    try {
-      token = getTokenFromCookie(req.headers.cookie);
-    } catch (err) {
-      this.errorHandling(err, res);
-      return;
-    }
-
-    try {
-      session = await this.getValidUserSessionByToken(token as string);
-    } catch (err) {
-      this.errorHandling(err, res);
-      return;
-    }
-
-    if (this.path.includes('/users')) {
-      const [, , userId] = req.url.split('/');
-      if (session.user.id !== +userId) {
-        res.statusCode = 401;
-        res.end(JSON.stringify('Unauthorized'));
-        return;
-      }
-    }
-
-    return session;
-  }
-
-  private getValidUserSessionByToken(token: string) {
-    return getRepository(Session).findOneOrFail(
-      {
-        token,
-        expiryTimestamp: MoreThan(new Date().getTime() / 1000),
-      },
-      { relations: ['user'] },
-    );
-  }
-
-  protected errorHandling(err: any, res: any) {
+  protected handleErrors(err: any, res: ServerResponse): void {
     res.statusCode = err.status || 500;
     res.end(err.message);
-    return;
   }
-  protected async parseBody(req: any) {
-    req.body = '';
-    await req.on('data', (chunk) => {
-      req.body += chunk.toString();
-    });
 
-    return JSON.parse(req.body);
+  protected parseBody(req: IncomingMessage): Promise<any> {
+    return new Promise((resolve, reject) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk.toString();
+      });
+      req.on('end', () => {
+        try {
+          const parsedBody = JSON.parse(body);
+          resolve(parsedBody);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+  }
+
+  private bindMethodsToThis(): void {
+    const methods = [
+      'index',
+      'create',
+      'update',
+      'delete',
+      'show',
+      'handleErrors'
+    ];
+    methods.forEach((method) => {
+      this[method] = this[method].bind(this);
+    });
   }
 }
 export default BaseController;

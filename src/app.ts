@@ -2,7 +2,7 @@ import * as http from 'http';
 import 'dotenv/config';
 import 'reflect-metadata';
 import BaseController from './controller/base.controller';
-import RequestHandler from './request-handler';
+import RequestHandler from './requestHandler';
 
 export interface Controller<E> extends BaseController<E, any> {
   currentRoute?: any;

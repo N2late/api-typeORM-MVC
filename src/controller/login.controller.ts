@@ -1,13 +1,14 @@
-import { Repository, getRepository } from 'typeorm';
+import { ObjectType, Repository, getRepository } from 'typeorm';
 import { User } from '../entity/User';
 import BaseController from './base.controller';
 import { Session } from '../entity/Session';
 import { createSerializedSignupTokenCookie } from '../entity/utils/cookies';
-import { checkInputIsNotEmpty } from './utils/utils';
+import ValidationService from './utils/validationService';
 
 class LoginController extends BaseController<User, Repository<User>> {
-  constructor() {
-    super();
+  constructor(User: ObjectType<User>) {
+    const repository = getRepository(User);
+    super(repository);
     this.initializeRoutes('/login');
   }
 
@@ -16,8 +17,8 @@ class LoginController extends BaseController<User, Repository<User>> {
     const {email, passwordHash } = req.body;
 
     try {
-      checkInputIsNotEmpty(email);
-      checkInputIsNotEmpty(passwordHash);
+      ValidationService.checkInputIsNotEmpty(email);
+      ValidationService.checkInputIsNotEmpty(passwordHash);
 
     } catch (err) {
       res.statusCode = 400;
