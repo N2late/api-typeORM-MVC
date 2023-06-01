@@ -21,7 +21,7 @@ class LoginController extends BaseController<User, Repository<User>> {
       ValidationService.checkInputIsNotEmpty(email);
       ValidationService.checkInputIsNotEmpty(passwordHash);
     } catch (err) {
-      ErrorHandler.handle(err, res);
+      ErrorHandler.badRequest(res, err.message);
       return;
     }
 
@@ -47,7 +47,7 @@ class LoginController extends BaseController<User, Repository<User>> {
       res.setHeader('Set-Cookie', serializedCookie);
       res.end(JSON.stringify({ userMatched }));
     } catch (err) {
-      ErrorHandler.handle(err, res); 
+      ErrorHandler.handle(err, res);
     }
   }
 }

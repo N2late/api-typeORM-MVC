@@ -37,8 +37,8 @@ class ErrorHandler {
   }
 
   public static failedConnection(error: Error, message: string): void {
-    console.error(message);
     console.error(error);
+    console.error(message);
   }
 }
 
