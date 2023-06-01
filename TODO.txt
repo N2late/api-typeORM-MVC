@@ -4,6 +4,5 @@ Refactor:
     - login
     - signup
 
-Add authorization to recommendation create method. and different options based on query params.
-
-- Fix empty firstname signup
+Add authorization to recommendation create method.
+- and different options based on query params.

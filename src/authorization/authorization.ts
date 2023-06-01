@@ -19,7 +19,7 @@ class Authorization {
       this.validateUserSessionPath(session, path);
       return session;
     } catch (err) {
-      ErrorHandler.handle(err, res);
+      ErrorHandler.unauthorized(res, err.message);
       return;
     }
   }

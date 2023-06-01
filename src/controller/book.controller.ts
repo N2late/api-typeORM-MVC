@@ -72,11 +72,8 @@ class BookController extends BaseController<Book, BookRepository> {
     let session: Session;
 
     session = await Authorization.validateUserSession(req, res, this.path);
-      if (!session) {
-      return;
-    }
 
-    if (session.user.id !== +req.body.userId) {
+    if (!session || session.user.id !== +req.body.userId) {
       ErrorHandler.unauthorized(res, 'Unauthorized');
       return;
     }
@@ -95,7 +92,9 @@ class BookController extends BaseController<Book, BookRepository> {
       );
       res.end(JSON.stringify(books));
     } else {
-      const books = await this.repository.getBooksByUserWithDetails(+req.body.userId);
+      const books = await this.repository.getBooksByUserWithDetails(
+        +req.body.userId,
+      );
       res.end(JSON.stringify(books));
     }
   }
