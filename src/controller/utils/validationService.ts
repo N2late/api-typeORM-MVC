@@ -7,7 +7,8 @@ export class ValidationService {
   static async validateEntity(entity: any) {
     const errors = await validate(entity);
     if (errors.length > 0) {
-      throw new Error('validation failed');
+      console.log(errors)
+      throw new Error(Object.values(errors[0].constraints)[0]);
     }
   }
 
@@ -25,7 +26,7 @@ export class ValidationService {
   }
 
   static checkInputIsNotEmpty(input: string) {
-    if (!input) {
+    if (input === '' || input === undefined) {
       throw new Error('Email and password are required');
     }
   }
