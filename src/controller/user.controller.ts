@@ -1,4 +1,4 @@
-import {ObjectType, Repository, getRepository } from 'typeorm';
+import { ObjectType, Repository, getRepository } from 'typeorm';
 import BaseController from './base.controller';
 import { User } from '../entity/User';
 

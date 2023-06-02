@@ -45,9 +45,10 @@ abstract class BaseController<
   }
 
   public async show(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    let session: Session;
+    const id =  ParamsBag.getUserIdFromUrl(req);
 
-    session = await Authorization.validateUserSession(req, res, this.path);
+    let session: Session;
+    session = await Authorization.validateUserSession(req, res, `${this.path}/${id}`);
 
     if (!session) {
       return;

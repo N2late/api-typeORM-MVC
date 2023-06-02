@@ -3,11 +3,11 @@ import { URL } from 'url';
 
 class ParamsBag {
 
-  public static async parseRequestUrl(req: IncomingMessage): Promise<any> {
+  public static parseRequestUrl(req: IncomingMessage): string[] {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const path = url.pathname;
-    const id = path.split('/').pop();
-    return { id };
+    const fields = path.split('/');
+    return fields;
   }
 
   public static async parseRequestBody(req: IncomingMessage): Promise<any> {
@@ -33,6 +33,11 @@ class ParamsBag {
     return queryParams;
   }
 
+  public static getUserIdFromUrl(req: IncomingMessage): number {
+    const fields = ParamsBag.parseRequestUrl(req);
+    const id = fields[fields.length - 1];
+    return +id;
+  }
 
 }
 

@@ -28,11 +28,11 @@ export class Router {
     // parseUrl logic was decoupled to a separate function -> better readability and maintainability
     const { pathname } = this.parseUrl(url);
     const [, path, userId] = pathname.split('/');
-
+    console.log('path', path, 'userId', userId);
     // route matching logic is now in a separate function -> better readability and maintainability
     let route;
     if (userId && !isNaN(+userId)) {
-      const pattern = `/${path}/:userId`;
+      const pattern = `/${path}/:id`;
       route = this.findRouteByPattern(method, pattern);
     } else {
       const pattern = `/${path}`;
