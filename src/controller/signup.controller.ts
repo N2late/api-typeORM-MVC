@@ -4,22 +4,25 @@ import { Session } from '../entity/Session';
 import { User } from '../entity/User';
 import ValidationService from './utils/validationService';
 import { createSerializedSignupTokenCookie } from '../entity/utils/cookies';
-import ErrorHandler from '../ErrorHandling';
+import ErrorHandler from '../errorHandling';
+import ParamsBag from '../paramsBag';
+import { IncomingMessage, ServerResponse } from 'http';
 
 export class SignupController extends BaseController<Session, Repository<Session>> {
+  private userRepository: Repository<User>;
+
   constructor(Session: ObjectType<Session>) {
     const repository = getRepository(Session);
     super(repository);
+    this.userRepository = getRepository(User);
     this.initializeRoutes('/signup');
   }
 
-  public async create(req: any, res: any) {
-    let body = await this.parseBody(req);
-
-
+  public async create(req: IncomingMessage,
+    res: ServerResponse,) {
+    const body = await ParamsBag.parseRequestBody(req);
     const { firstName, lastName, email, passwordHash } = body;
 
-    // check if user already exists
     try {
       await ValidationService.checkIfUserExists(email);
     } catch (err) {
@@ -35,24 +38,11 @@ export class SignupController extends BaseController<Session, Repository<Session
 
     try {
       await ValidationService.validateEntity(user);
-    } catch (err) {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ message: err.message }));
-      return;
-    }
-    await user.hashPassword(passwordHash);
+      await user.hashPassword(passwordHash);
+      const newUser = await this.userRepository.save(user);
 
-    try {
-      const newUser = await getRepository(User).save(user);
-
-      const session = await this.repository.save({
-        user: newUser,
-      });
-
-      // delete expired sessions from db
-      await this.repository.delete({
-        expiryTimestamp: LessThan(new Date().getTime() / 1000),
-      });
+      const session = await this.repository.save({ user: newUser });
+      await this.repository.delete({ expiryTimestamp: LessThan(new Date().getTime() / 1000) });
 
       delete newUser.passwordHash;
 

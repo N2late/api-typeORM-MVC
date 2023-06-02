@@ -1,4 +1,4 @@
-import ErrorHandler from './ErrorHandling';
+import ErrorHandler from './errorHandling';
 import { Controller } from './app';
 import { IncomingMessage, ServerResponse } from 'http';
 

@@ -5,7 +5,8 @@ import { User } from '../entity/User';
 import { IncomingMessage, ServerResponse } from 'http';
 import urlParser from 'url';
 import Authorization from '../authorization/authorization';
-import ErrorHandler from '../ErrorHandling';
+import ErrorHandler from '../errorHandling';
+import ParamsBag from '../paramsBag';
 
 abstract class BaseController<
   Entity,
@@ -69,7 +70,7 @@ abstract class BaseController<
     res: ServerResponse,
   ): Promise<void> {
     try {
-      let body = await this.parseBody(req);
+      let body = await ParamsBag.parseRequestBody(req);
 
       const entity = await this.repository.save(body);
       res.statusCode = 201;
@@ -89,7 +90,7 @@ abstract class BaseController<
     session = await Authorization.validateUserSession(req, res, this.path);
 
     try {
-      let body = await this.parseBody(req);
+      let body = await ParamsBag.parseRequestBody(req);
       const updatedEntity = await this.repository.update(session.user.id, body);
       res.statusCode = 200;
       res.end(JSON.stringify(updatedEntity));
@@ -115,23 +116,6 @@ abstract class BaseController<
       Error;
       return;
     }
-  }
-
-  protected parseBody(req: IncomingMessage): Promise<any> {
-    return new Promise((resolve, reject) => {
-      let body = '';
-      req.on('data', (chunk) => {
-        body += chunk.toString();
-      });
-      req.on('end', () => {
-        try {
-          const parsedBody = JSON.parse(body);
-          resolve(parsedBody);
-        } catch (err) {
-          reject(err);
-        }
-      });
-    });
   }
 
   private bindMethodsToThis(): void {

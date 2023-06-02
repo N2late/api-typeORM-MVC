@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { MoreThan, getRepository } from 'typeorm';
 import { Session } from '../entity';
-import ErrorHandler from '../ErrorHandling';
+import ErrorHandler from '../errorHandling';
 
 // Set up a session
 class Authorization {

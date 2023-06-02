@@ -3,7 +3,7 @@ import { dbConfig } from './ormconfig';
 import App, { HttpServer } from './app';
 import 'reflect-metadata';
 import registerControllers from './controller/utils/registerControllers';
-import ErrorHandler from './ErrorHandling';
+import ErrorHandler from './errorHandling';
 
 const startServer = async (): Promise<void> => {
   try {

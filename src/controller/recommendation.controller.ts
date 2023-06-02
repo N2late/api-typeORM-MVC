@@ -1,10 +1,11 @@
 import { ObjectType, getCustomRepository } from 'typeorm';
 import { Book, BookRepository } from '../entity/Books/Book';
 import BaseController from './base.controller';
-import { aiPrompt, aiPromptWTR, promptOpenAI } from './utils/openAI';
-import ErrorHandler from '../ErrorHandling';
+import ErrorHandler from '../errorHandling';
 import authorization from '../authorization/authorization';
-import { URL } from 'url';
+import ParamsBag from '../paramsBag';
+import { aiPrompt, aiPromptWTR, promptOpenAI } from './utils/openAI';
+import { IncomingMessage, ServerResponse } from 'http';
 
 class RecommendationController extends BaseController<Book, BookRepository> {
   constructor(BookRepository: ObjectType<BookRepository>) {
@@ -13,41 +14,40 @@ class RecommendationController extends BaseController<Book, BookRepository> {
     this.initializeRoutes('/recommendation');
   }
 
-  public async index(req, res) {
-    req.body = await this.parseBody(req);
-    const userId = +req.body.userId;
-
-    const session = await authorization.validateUserSession(
-      req,
-      res,
-      this.path,
-    );
-
-    if (!session) return;
-
-    if (session.user.id !== req.body.userId) {
-      ErrorHandler.unauthorized(res, 'Unauthorized');
-      return;
-    }
-
-    const url = new URL(req.url, 'http://localhost:3000');
-    const queryParam = url.searchParams.get('type');
-    const books = await this.repository.getBooksByUserWithDetails(userId);
-    
+  public async index(req: IncomingMessage & { body: any },
+    res: ServerResponse,) {
     try {
-        if (queryParam === 'want-to-read') {
-          const aiResponse = await promptOpenAI(aiPromptWTR(books));
-          res.end(JSON.stringify(aiResponse));
+      req.body = await ParamsBag.parseRequestBody(req);
+      const userId = +req.body.userId;
+      const userSession = await authorization.validateUserSession(req, res, this.path);
 
-      } else if (queryParam === 'random'){
-          const aiResponse = await promptOpenAI(aiPrompt(books));
-          res.end(JSON.stringify(aiResponse));
-      } else {
-        ErrorHandler.badRequest(res, 'Invalid query parameter');
+      if (!userSession) {
+        return;
       }
+
+      if (userSession.user.id !== req.body.userId) {
+        ErrorHandler.unauthorized(res, 'Unauthorized');
+        return;
+      }
+
+      const queryParams = await ParamsBag.parseQueryParams(req);
+      const books = await this.repository.getBooksByUserWithDetails(userId);
+      const aiRecommendedBook = await this.getAIRecommendedBook(books, queryParams.get('type'));
+
+      res.statusCode = 200;
+      res.end(JSON.stringify({ aiRecommendedBook }));
     } catch (err) {
-      ErrorHandler.handle(err, res);
-      return;
+      ErrorHandler.badRequest(res, err.message);
+    }
+  }
+
+  private async getAIRecommendedBook(books: Book[], queryParam: string) {
+    if (queryParam === 'want-to-read') {
+      return await promptOpenAI(aiPromptWTR(books));
+    } else if (queryParam === 'random') {
+      return await promptOpenAI(aiPrompt(books));
+    } else {
+      throw new Error('Invalid query parameter');
     }
   }
 }
