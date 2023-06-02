@@ -32,7 +32,7 @@ export class Router {
     // route matching logic is now in a separate function -> better readability and maintainability
     let route;
     if (userId && !isNaN(+userId)) {
-      const pattern = `/${path}/:userId`;
+      const pattern = `/${path}/:id`;
       route = this.findRouteByPattern(method, pattern);
     } else {
       const pattern = `/${path}`;

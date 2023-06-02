@@ -1,6 +1,10 @@
-3. create book logic
+Refactor:
+ ->Controllers -> SIP
+    - book
+    - login
+    - signup
 
-3.2 Update book
-3.3 add some examples to read and want to read
 
-4. create recommendation logic
+Check and fix "route not found" error handling.
+
+Improve parseRequestURL to return all the info dynamically

@@ -2,7 +2,7 @@ import { ConnectionOptions } from 'typeorm';
 import 'dotenv/config';
 import 'reflect-metadata';
 
-export const config: ConnectionOptions = {
+export const dbConfig: ConnectionOptions = {
   type: 'mysql',
   host: 'localhost',
   port: Number(process.env.MYSQL_PORT),

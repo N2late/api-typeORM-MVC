@@ -2,7 +2,7 @@ import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseSchema } from './utils/baseSchema';
 import { Session } from './Session';
 import * as bcrypt from 'bcrypt';
-import { IsEmail, Length, IsString } from 'class-validator';
+import { IsEmail, Length, IsString, isNotEmpty, IsNotEmpty } from 'class-validator';
 import { Book } from './Books/Book';
 
 // using the active record pattern with typeorm
@@ -12,12 +12,14 @@ export class User extends BaseSchema {
     length: 50,
     nullable: false,
   })
+  @IsNotEmpty()
   firstName: string;
 
   @Column('varchar', {
     length: 50,
     nullable: false,
   })
+  @IsNotEmpty()
   lastName: string;
 
   @Column('varchar', {

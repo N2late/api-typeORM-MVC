@@ -1,44 +1,53 @@
 import * as http from 'http';
 import 'dotenv/config';
 import 'reflect-metadata';
+import BaseController from './controller/base.controller';
+import RequestHandler from './requestHandler';
 
+export interface Controller<E> extends BaseController<E, any> {
+  currentRoute?: any;
+  router: any;
+  repository: E;
+  initializeRoutes(path: string): void;
+}
 
-class App {
-  public server: http.Server;
-  public port: number;
+// Introduce an abstraction layer (interface) for the server and its dependencies following the Dependency Inversion Principle.
+// Define an interface for the server and its dependencies
+export interface Server {
+  listen(port: number, callback: () => void): void;
+  on(event: string, callback: (...args: any[]) => void): void;
+}
 
-  constructor(controllers: any[]) {
+// Implement the Server interface using the http module
+export class HttpServer implements Server {
+  private server: http.Server;
+
+  constructor() {
     this.server = http.createServer();
-    this.port = Number(process.env.PORT);
-
-    this.initControllers(controllers);
   }
 
+  public listen(port: number, callback: () => void) {
+    this.server.listen(port, callback);
+  }
 
-  private initControllers(controllers) {
-    this.server.on('request', (req, res) => {
-      const foundController = controllers.find((controller) => {
-        const route = controller.router.findRoute(req.method, req.url);
-        if (!route) {
-          return false;
-        }
-        controller.route = route;
-        return true;
-      });
+  public on(event: string, callback: (...args: any[]) => void) {
+    this.server.on(event, callback);
+  }
+}
 
-      if (!foundController) {
-        res.writeHead(404);
-        res.end('Not Found');
-        return;
-      }
+// Splitted the App class into separate RequestHandler class to follow the Single Responsibility Principle
+class App {
+  private server: Server;
+  private port: number;
 
-      try {
-        foundController.route.handler(req, res);
-        return;
-      } catch (err) {
-        res.writeHead(500);
-        res.end('Internal Server Error');
-      }
+  constructor(controllers: Controller<any>[], server: Server) {
+    this.server = server;
+    this.port = Number(process.env.PORT);
+
+    const requestHandler = new RequestHandler(controllers);
+
+    this.server.on('request', (req: http.IncomingMessage, res: http.ServerResponse) => {
+      requestHandler.handleRequest(req, res);
     });
   }
 

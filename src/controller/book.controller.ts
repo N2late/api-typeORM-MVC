@@ -1,78 +1,69 @@
-import { getCustomRepository, getRepository } from 'typeorm';
+import { IncomingMessage, ServerResponse } from 'http';
+import { ObjectType, getCustomRepository, getRepository } from 'typeorm';
 import BaseController from './base.controller';
-import { Book, BookRepository } from '../entity/Books/Book';
-import { Genre } from '../entity/Books/Genre';
-import { User } from '../entity/User';
-import { Bookshelf } from '../entity/Books/Bookshelf';
-import { Rating } from '../entity/Books/Rating';
-import { Author } from '../entity/Books/Author';
-import { Session } from '../entity/Session';
-import { URL } from 'url';
+import {
+  Author,
+  Genre,
+  User,
+  Bookshelf,
+  Rating,
+  Book,
+  BookRepository,
+} from '../entity';
+import authorization from '../authorization/authorization';
+import ValidationService from './utils/validationService';
+import ErrorHandler from '../errorHandling';
+import ParamsBag from '../paramsBag';
+import { BaseCrudOperations, HttpRequest } from './utils/baseCrudOperations';
 
 class BookController extends BaseController<Book, BookRepository> {
-  constructor() {
-    super();
-    this.repository = getCustomRepository(BookRepository);
+  private crudOperations: BaseCrudOperations;
+  constructor(bookRepository: ObjectType<BookRepository>) {
+    const repository = getCustomRepository(bookRepository);
+    super(repository);
     this.initializeRoutes('/books');
+    this.crudOperations = new BaseCrudOperations(repository, this.path);
   }
 
-  public async create(req, res) {
-    req.body = await this.parseBody(req);
-    let session: Session;
-    session = await this.validateUserSession(req, res);
+  public async create(
+    req: IncomingMessage & { body: any },
+    res: ServerResponse,
+  ) {
+    try {
+      req.body = await ParamsBag.parseRequestBody(req);
 
-    if (!session || session.user.id !== +req.body.userId) {
-      res.statusCode = 401;
-      res.end(JSON.stringify({ message: 'Unauthorized' }));
+      await authorization.validateUserIdInSession(req, res, this.path);
+
+      let author = await ValidationService.checkIfAuthorExists(
+        req.body.authorName,
+      );
+
+      if (!author) {
+        author = await this.createNewAuthor(req.body.authorName);
+      }
+
+      const book = await this.createNewBook(req.body, author);
+
+      await this.repository.save(book);
+      delete book.user.hashPassword;
+      this.sendResponse(res, 201, book);
+    } catch (err) {
+      ErrorHandler.badRequest(res, err.message);
       return;
     }
+  }
 
-    const author = await this.checkIfAuthorExists(req.body.authorName);
-
-    if (!author) {
-      const newAuthor = new Author();
-      newAuthor.name = req.body.authorName;
-      await getRepository(Author).save(newAuthor);
-    }
-
-    const book = new Book();
-
-    book.title = req.body.title;
-    book.author = await getRepository(Author).findOne({
-      name: req.body.authorName,
-    });
-    book.genre = await getRepository(Genre).findOne(req.body.genreId);
-    book.user = await getRepository(User).findOne(req.body.userId);
-    book.bookshelf = await getRepository(Bookshelf).findOne(
-      req.body.bookShelfId,
-    );
-    book.rating = await getRepository(Rating).findOne(req.body.ratingId);
+  public async index(
+    req: IncomingMessage & { body: any },
+    res: ServerResponse,
+  ) {
+    const queryParams = await ParamsBag.parseQueryParams(req);
+    req.body = await ParamsBag.parseRequestBody(req);
 
     try {
-      await this.repository.save(book);
-      res.end(JSON.stringify(book));
+      await authorization.validateUserIdInSession(req, res, this.path);
     } catch (err) {
-      this.errorHandling(err, res);
-      return;
-    }
-  }
-
-  public async index(req, res) {
-    const url = new URL(req.url, 'http://localhost:3000');
-    const queryParams = url.searchParams;
-    req.body = await this.parseBody(req);
-
-    let session: Session;
-
-    session = await this.validateUserSession(req, res);
-
-    if (!session) {
-      return;
-    }
-
-    if (!session || session.user.id !== +req.body.userId) {
-      res.statusCode = 401;
-      res.end(JSON.stringify({ message: 'Unauthorized' }));
+      ErrorHandler.unauthorized(res, err.message);
       return;
     }
 
@@ -88,18 +79,44 @@ class BookController extends BaseController<Book, BookRepository> {
         +req.body.userId,
         id,
       );
-      res.end(JSON.stringify(books));
+      this.sendResponse(res, 200, books);
     } else {
-      const books = await this.repository.findByUserId(+req.body.userId);
-      res.end(JSON.stringify(books));
+      const books = await this.repository.getBooksByUserWithDetails(
+        +req.body.userId,
+      );
+      this.sendResponse(res, 200, books);
     }
   }
-  private async checkIfAuthorExists(authorName: string) {
-    const author = await getRepository(Author).findOne({ name: authorName });
-    if (author) {
-      return author;
-    }
-    return null;
+
+  public async show(req: HttpRequest, res: ServerResponse) {
+    await this.crudOperations.show(req, res);
+  }
+
+  public async update(req: HttpRequest, res: ServerResponse) {
+    await this.crudOperations.update(req, res);
+  }
+
+  public async delete(req: HttpRequest, res: ServerResponse) {
+    await this.crudOperations.delete(req, res);
+  }
+
+  private async createNewAuthor(authorName: string) {
+    const newAuthor = new Author();
+    newAuthor.name = authorName;
+    return await getRepository(Author).save(newAuthor);
+  }
+
+  private async createNewBook(body: any, author: Author) {
+    const book = new Book();
+
+    book.title = body.title;
+    book.author = author;
+    book.genre = await getRepository(Genre).findOne(body.genreId);
+    book.user = await getRepository(User).findOne(body.userId);
+    book.bookshelf = await getRepository(Bookshelf).findOne(body.bookShelfId);
+    book.rating = await getRepository(Rating).findOne(body.ratingId);
+
+    return book;
   }
 }
 
