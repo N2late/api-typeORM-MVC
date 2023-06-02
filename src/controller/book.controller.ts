@@ -96,6 +96,10 @@ class BookController extends BaseController<Book, BookRepository> {
     await this.crudOperations.update(req, res);
   }
 
+  public async delete(req: HttpRequest, res: ServerResponse) {
+    await this.crudOperations.delete(req, res);
+  }
+
   private async createNewAuthor(authorName: string) {
     const newAuthor = new Author();
     newAuthor.name = authorName;
