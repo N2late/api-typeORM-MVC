@@ -19,16 +19,8 @@ class RecommendationController extends BaseController<Book, BookRepository> {
     try {
       req.body = await ParamsBag.parseRequestBody(req);
       const userId = +req.body.userId;
-      const userSession = await authorization.validateUserSession(req, res, this.path);
 
-      if (!userSession) {
-        return;
-      }
-
-      if (userSession.user.id !== req.body.userId) {
-        ErrorHandler.unauthorized(res, 'Unauthorized');
-        return;
-      }
+      await authorization.validateUserIdInSession(req, res, this.path);
 
       const queryParams = await ParamsBag.parseQueryParams(req);
       const books = await this.repository.getBooksByUserWithDetails(userId);

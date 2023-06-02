@@ -5,6 +5,21 @@ import ErrorHandler from '../errorHandling';
 
 // Set up a session
 class Authorization {
+
+  public async validateUserIdInSession(
+    req: any,
+    res: any,
+    path: string,
+  ): Promise<Session>  {
+    const userSession = await this.validateUserSession(req, res, path);
+
+    if (userSession.user.id !== +req.body.userId) {
+      ErrorHandler.unauthorized(res, 'Unauthorized');
+      return;
+    }
+
+    return userSession;
+  }
   public async validateUserSession(
     req: IncomingMessage,
     res: ServerResponse,

@@ -1,12 +1,8 @@
 import { Repository } from 'typeorm';
 import { Router } from '../router';
-import { Session } from '../entity/Session';
-import { User } from '../entity/User';
 import { IncomingMessage, ServerResponse } from 'http';
 import urlParser from 'url';
-import Authorization from '../authorization/authorization';
-import ErrorHandler from '../errorHandling';
-import ParamsBag from '../paramsBag';
+
 
 abstract class BaseController<
   Entity,
@@ -31,102 +27,30 @@ abstract class BaseController<
       this.router.delete(`${this.path}/:id`, this.delete);
     }
     if (!this.path.includes('/users')) this.router.post(this.path, this.create);
+
   }
 
-  public async index(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    try {
-      const entities = await this.repository.find();
-
-      res.end(JSON.stringify(entities));
-    } catch (err) {
-      ErrorHandler.handle(err, res);
-      return;
-    }
+  public index(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    throw new Error('Bad request');
   }
 
-  public async show(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    const id =  ParamsBag.getUserIdFromUrl(req);
-
-    let session: Session;
-    session = await Authorization.validateUserSession(req, res, `${this.path}/${id}`);
-
-    if (!session) {
-      return;
-    }
-
-    try {
-      const entity = await this.repository.findOne(session.user.id);
-      if (entity instanceof User) {
-        delete entity.passwordHash;
-      }
-      res.end(JSON.stringify(entity));
-    } catch (err) {
-      Error;
-      return;
-    }
+  public show(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    throw new Error('Bad request');
   }
 
-  public async create(
-    req: IncomingMessage,
-    res: ServerResponse,
-  ): Promise<void> {
-    try {
-      let body = await ParamsBag.parseRequestBody(req);
-
-      const entity = await this.repository.save(body);
-      res.statusCode = 201;
-      res.end(JSON.stringify(entity));
-    } catch (err) {
-      Error;
-      return;
-    }
+  public create(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    throw new Error('Bad request');
   }
 
-  public async update(
-    req: IncomingMessage,
-    res: ServerResponse,
-  ): Promise<void> {
-    let session: Session;
-
-    session = await Authorization.validateUserSession(req, res, this.path);
-
-    try {
-      let body = await ParamsBag.parseRequestBody(req);
-      const updatedEntity = await this.repository.update(session.user.id, body);
-      res.statusCode = 200;
-      res.end(JSON.stringify(updatedEntity));
-    } catch (err) {
-      Error;
-      return;
-    }
+  public update(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    throw new Error('Bad request');
   }
 
-  public async delete(
-    req: IncomingMessage,
-    res: ServerResponse,
-  ): Promise<void> {
-    let session: Session;
-
-    session = await Authorization.validateUserSession(req, res, this.path);
-
-    try {
-      const deletedEntity = await this.repository.delete(session.user.id);
-      res.statusCode = 200;
-      res.end(JSON.stringify(deletedEntity));
-    } catch (err) {
-      Error;
-      return;
-    }
+  public delete(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    throw new Error('Bad request');
   }
 
-  private bindMethodsToThis(): void {
-    const methods = ['index', 'create', 'update', 'delete', 'show'];
-    methods.forEach((method) => {
-      this[method] = this[method].bind(this);
-    });
-  }
-
-  protected sendResponse(
+ protected sendResponse(
     res: any,
     statusCode: number,
     body: any,
@@ -141,5 +65,13 @@ abstract class BaseController<
       res.end(JSON.stringify(body));
     }
   }
+
+  private bindMethodsToThis(): void {
+    const methods = ['index', 'create', 'update', 'delete', 'show'];
+    methods.forEach((method) => {
+      this[method] = this[method].bind(this);
+    });
+  }
+
 }
 export default BaseController;

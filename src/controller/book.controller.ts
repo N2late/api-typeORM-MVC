@@ -7,20 +7,22 @@ import {
   User,
   Bookshelf,
   Rating,
-  Session,
   Book,
   BookRepository,
 } from '../entity';
-import Authorization from '../authorization/authorization';
+import authorization from '../authorization/authorization';
 import ValidationService from './utils/validationService';
 import ErrorHandler from '../errorHandling';
 import ParamsBag from '../paramsBag';
+import { BaseCrudOperations, HttpRequest } from './utils/baseCrudOperations';
 
 class BookController extends BaseController<Book, BookRepository> {
+  private crudOperations: BaseCrudOperations;
   constructor(bookRepository: ObjectType<BookRepository>) {
     const repository = getCustomRepository(bookRepository);
     super(repository);
     this.initializeRoutes('/books');
+    this.crudOperations = new BaseCrudOperations(repository, this.path);
   }
 
   public async create(
@@ -29,20 +31,8 @@ class BookController extends BaseController<Book, BookRepository> {
   ) {
     try {
       req.body = await ParamsBag.parseRequestBody(req);
-      const userSession = await Authorization.validateUserSession(
-        req,
-        res,
-        this.path,
-      );
 
-      if (!userSession) {
-        return;
-      }
-
-      if (userSession.user.id !== +req.body.userId) {
-        ErrorHandler.unauthorized(res, 'Unauthorized');
-        return;
-      }
+      await authorization.validateUserIdInSession(req, res, this.path);
 
       let author = await ValidationService.checkIfAuthorExists(
         req.body.authorName,
@@ -70,13 +60,8 @@ class BookController extends BaseController<Book, BookRepository> {
     const queryParams = await ParamsBag.parseQueryParams(req);
     req.body = await ParamsBag.parseRequestBody(req);
 
-    let session: Session;
     try {
-      session = await Authorization.validateUserSession(req, res, this.path);
-
-      if (session.user.id !== +req.body.userId) {
-        throw new Error('Unauthorized');
-      }
+      await authorization.validateUserIdInSession(req, res, this.path);
     } catch (err) {
       ErrorHandler.unauthorized(res, err.message);
       return;
@@ -101,6 +86,14 @@ class BookController extends BaseController<Book, BookRepository> {
       );
       this.sendResponse(res, 200, books);
     }
+  }
+
+  public async show(req: HttpRequest, res: ServerResponse) {
+    await this.crudOperations.show(req, res);
+  }
+
+  public async update(req: HttpRequest, res: ServerResponse) {
+    await this.crudOperations.update(req, res);
   }
 
   private async createNewAuthor(authorName: string) {

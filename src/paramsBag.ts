@@ -33,7 +33,7 @@ class ParamsBag {
     return queryParams;
   }
 
-  public static getUserIdFromUrl(req: IncomingMessage): number {
+  public static getIdFromUrl(req: IncomingMessage): number {
     const fields = ParamsBag.parseRequestUrl(req);
     const id = fields[fields.length - 1];
     return +id;

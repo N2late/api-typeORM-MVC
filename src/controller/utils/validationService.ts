@@ -1,17 +1,22 @@
 import { validate } from 'class-validator';
 import { getRepository } from 'typeorm';
 import { User } from '../../entity/User';
-import { Author } from '../../entity';
+import { Author, Session } from '../../entity';
+import authorization from '../../authorization/authorization';
+import ErrorHandler from '../../errorHandling';
+
 
 export class ValidationService {
   static async validateEntity(entity: any) {
     const errors = await validate(entity);
     if (errors.length > 0) {
-      console.log(errors)
+      console.log(errors);
       throw new Error(Object.values(errors[0].constraints)[0]);
     }
   }
 
+
+  // should this be here or in the user model?
   static async checkIfUserExists(email: string) {
     const userRepository = getRepository(User);
     const userFound = await userRepository.find({
@@ -19,7 +24,7 @@ export class ValidationService {
         email: email,
       },
     });
-   
+
     if (userFound.length) {
       throw new Error('User already exists');
     }
@@ -31,6 +36,7 @@ export class ValidationService {
     }
   }
 
+  // should this be here or in the author model?
   static async checkIfAuthorExists(authorName: string) {
     const author = await getRepository(Author).findOne({ name: authorName });
     if (author) {
