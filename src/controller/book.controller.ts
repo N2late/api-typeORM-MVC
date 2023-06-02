@@ -23,7 +23,10 @@ class BookController extends BaseController<Book, BookRepository> {
     this.initializeRoutes('/books');
   }
 
-  public async create(req: IncomingMessage & { body: any}, res: ServerResponse) {
+  public async create(
+    req: IncomingMessage & { body: any },
+    res: ServerResponse,
+  ) {
     try {
       req.body = await ParamsBag.parseRequestBody(req);
       const userSession = await Authorization.validateUserSession(
@@ -59,16 +62,23 @@ class BookController extends BaseController<Book, BookRepository> {
     }
   }
 
-  public async index(req: IncomingMessage & { body: any}, res: ServerResponse) {
+  public async index(
+    req: IncomingMessage & { body: any },
+    res: ServerResponse,
+  ) {
     const queryParams = await ParamsBag.parseQueryParams(req);
     req.body = await ParamsBag.parseRequestBody(req);
 
     let session: Session;
+    try {
+      session = await Authorization.validateUserSession(req, res, this.path);
 
-    session = await Authorization.validateUserSession(req, res, this.path);
-
-    if (!session || session.user.id !== +req.body.userId) {
-      ErrorHandler.unauthorized(res, 'Unauthorized');
+      if (session.user.id !== +req.body.userId) {
+        console.log(session.user.id, req.body.userId);
+        throw new Error('Unauthorized');
+      }
+    } catch (err) {
+      ErrorHandler.unauthorized(res, err.message);
       return;
     }
 

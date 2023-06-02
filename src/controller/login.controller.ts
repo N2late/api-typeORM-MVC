@@ -15,13 +15,13 @@ class LoginController extends BaseController<User, Repository<User>> {
     this.initializeRoutes('/login');
   }
 
-  public async create(req: IncomingMessage,
-    res: ServerResponse,) {
+  public async create(req: IncomingMessage, res: ServerResponse) {
     try {
       const { email, passwordHash } = await ParamsBag.parseRequestBody(req);
       this.validateInputs(email, passwordHash);
       const userMatched = await this.findUserByEmail(email);
       await this.checkPassword(userMatched, passwordHash);
+      delete userMatched.passwordHash;
       const session = await this.createSession(userMatched);
       const serializedCookie = createSerializedSignupTokenCookie(session.token);
       this.sendResponse(res, 200, { userMatched }, serializedCookie);
@@ -37,7 +37,7 @@ class LoginController extends BaseController<User, Repository<User>> {
 
   private async findUserByEmail(email: string) {
     const userMatched = await getRepository(User).findOneOrFail({ email });
-    delete userMatched.passwordHash;
+
     return userMatched;
   }
 
@@ -53,7 +53,12 @@ class LoginController extends BaseController<User, Repository<User>> {
     return session;
   }
 
-  private sendResponse(res: any, statusCode: number, body: any, serializedCookie: string) {
+  private sendResponse(
+    res: any,
+    statusCode: number,
+    body: any,
+    serializedCookie: string,
+  ) {
     res.statusCode = statusCode;
     res.setHeader('Set-Cookie', serializedCookie);
     res.end(JSON.stringify(body));

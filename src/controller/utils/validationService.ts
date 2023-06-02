@@ -13,13 +13,13 @@ export class ValidationService {
   }
 
   static async checkIfUserExists(email: string) {
-    const userRepository = await getRepository(User);
+    const userRepository = getRepository(User);
     const userFound = await userRepository.find({
       where: {
         email: email,
       },
     });
-
+   
     if (userFound.length) {
       throw new Error('User already exists');
     }
