@@ -34,8 +34,7 @@ class RecommendationController extends BaseController<Book, BookRepository> {
       const books = await this.repository.getBooksByUserWithDetails(userId);
       const aiRecommendedBook = await this.getAIRecommendedBook(books, queryParams.get('type'));
 
-      res.statusCode = 200;
-      res.end(JSON.stringify({ aiRecommendedBook }));
+      this.sendResponse(res, 200, aiRecommendedBook);
     } catch (err) {
       ErrorHandler.badRequest(res, err.message);
     }

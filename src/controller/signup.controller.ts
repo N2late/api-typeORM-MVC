@@ -8,7 +8,10 @@ import ErrorHandler from '../errorHandling';
 import ParamsBag from '../paramsBag';
 import { IncomingMessage, ServerResponse } from 'http';
 
-export class SignupController extends BaseController<Session, Repository<Session>> {
+export class SignupController extends BaseController<
+  Session,
+  Repository<Session>
+> {
   private userRepository: Repository<User>;
 
   constructor(Session: ObjectType<Session>) {
@@ -18,8 +21,7 @@ export class SignupController extends BaseController<Session, Repository<Session
     this.initializeRoutes('/signup');
   }
 
-  public async create(req: IncomingMessage,
-    res: ServerResponse,) {
+  public async create(req: IncomingMessage, res: ServerResponse) {
     const body = await ParamsBag.parseRequestBody(req);
     const { firstName, lastName, email, passwordHash } = body;
 
@@ -42,15 +44,15 @@ export class SignupController extends BaseController<Session, Repository<Session
       const newUser = await this.userRepository.save(user);
 
       const session = await this.repository.save({ user: newUser });
-      await this.repository.delete({ expiryTimestamp: LessThan(new Date().getTime() / 1000) });
+      await this.repository.delete({
+        expiryTimestamp: LessThan(new Date().getTime() / 1000),
+      });
 
       delete newUser.passwordHash;
 
       const serializedCookie = createSerializedSignupTokenCookie(session.token);
 
-      res.statusCode = 201;
-      res.setHeader('Set-Cookie', serializedCookie);
-      res.end(JSON.stringify({ user: newUser }));
+      this.sendResponse(res, 201, { user: newUser }, serializedCookie);
     } catch (err) {
       ErrorHandler.handle(err, res);
     }

@@ -53,16 +53,6 @@ class LoginController extends BaseController<User, Repository<User>> {
     return session;
   }
 
-  private sendResponse(
-    res: any,
-    statusCode: number,
-    body: any,
-    serializedCookie: string,
-  ) {
-    res.statusCode = statusCode;
-    res.setHeader('Set-Cookie', serializedCookie);
-    res.end(JSON.stringify(body));
-  }
 }
 
 export default LoginController;

@@ -2,6 +2,14 @@ import { IncomingMessage } from 'http';
 import { URL } from 'url';
 
 class ParamsBag {
+
+  public static async parseRequestUrl(req: IncomingMessage): Promise<any> {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const path = url.pathname;
+    const id = path.split('/').pop();
+    return { id };
+  }
+
   public static async parseRequestBody(req: IncomingMessage): Promise<any> {
     return new Promise((resolve, reject) => {
       let body = '';
@@ -24,6 +32,8 @@ class ParamsBag {
     const queryParams = url.searchParams;
     return queryParams;
   }
+
+
 }
 
 export default ParamsBag;

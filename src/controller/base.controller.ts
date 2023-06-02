@@ -124,5 +124,21 @@ abstract class BaseController<
       this[method] = this[method].bind(this);
     });
   }
+
+  protected sendResponse(
+    res: any,
+    statusCode: number,
+    body: any,
+    serializedCookie: string = '',
+  ) {
+    if (serializedCookie) {
+    res.statusCode = statusCode;
+    res.setHeader('Set-Cookie', serializedCookie);
+    res.end(JSON.stringify(body));
+    } else {
+      res.statusCode = statusCode;
+      res.end(JSON.stringify(body));
+    }
+  }
 }
 export default BaseController;

@@ -1,5 +1,10 @@
 Refactor:
- ->Controllers:
+ ->Controllers -> SIP
     - book
     - login
     - signup
+
+
+Check and fix "route not found" error handling.
+
+Improve parseRequestURL to return all the info dynamically

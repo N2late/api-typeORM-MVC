@@ -55,7 +55,8 @@ class BookController extends BaseController<Book, BookRepository> {
       const book = await this.createNewBook(req.body, author);
 
       await this.repository.save(book);
-      res.end(JSON.stringify(`${book.title} was added to your bookshelf`));
+      delete book.user.hashPassword;
+      this.sendResponse(res, 201, book);
     } catch (err) {
       ErrorHandler.badRequest(res, err.message);
       return;
@@ -74,7 +75,6 @@ class BookController extends BaseController<Book, BookRepository> {
       session = await Authorization.validateUserSession(req, res, this.path);
 
       if (session.user.id !== +req.body.userId) {
-        console.log(session.user.id, req.body.userId);
         throw new Error('Unauthorized');
       }
     } catch (err) {
@@ -94,12 +94,12 @@ class BookController extends BaseController<Book, BookRepository> {
         +req.body.userId,
         id,
       );
-      res.end(JSON.stringify(books));
+      this.sendResponse(res, 200, books);
     } else {
       const books = await this.repository.getBooksByUserWithDetails(
         +req.body.userId,
       );
-      res.end(JSON.stringify(books));
+      this.sendResponse(res, 200, books);
     }
   }
 
