@@ -1,7 +1,6 @@
-# Awesome Project Build with TypeORM
+# A simple API project built with TypeORM using the MVC architecture.
 
-Steps to run this project:
-
+To run this project:
 1. Run `npm i` command
-2. Setup database settings inside `ormconfig.json` file
+2. Configure database settings in `ormconfig.json` file
 3. Run `npm start` command
